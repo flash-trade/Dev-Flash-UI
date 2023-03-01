@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 
-import { tokenAddressToToken } from "@/lib/Token";
+import { tokenAddressToTokenE } from "@/utils/TokenUtils";
 import { getPerpetualProgramAndProvider } from "@/utils/constants";
-import { Position, UserPoolPositions, Side } from "@/lib/Position";
+import { Position, UserPoolPositions, Side } from "@/lib/PositionAccount";
 import { useAnchorWallet, useWallet } from "@solana/wallet-adapter-react";
-import {  usePositionStore } from "@/stores/store";
+import {  useGlobalStore } from "@/stores/store";
 import { shallow } from "zustand/shallow";
 
 interface Pending {
@@ -24,10 +24,10 @@ interface Success {
 export type PositionRequest = Pending | Failure | Success;
 
 export function usePositions() {
-  const { positions, setStorePositions } = usePositionStore(
+  const { positions, setUserPositions } = useGlobalStore(
     (state) => ({
-      positions: state.storePositions,
-      setStorePositions: state.setStorePositions,
+      positions: state.userPositions,
+      setUserPositions: state.setUserPositions,
     }),
     shallow
   );
@@ -91,7 +91,7 @@ export function usePositions() {
         pnlDeltaPercent: 0,
         size: position.account.sizeUsd.toNumber(),
         timestamp: Date.now(),
-        token: tokenAddressToToken(fetchedCustodies[index].mint.toString()),
+        token: tokenAddressToTokenE(fetchedCustodies[index].mint.toString()),
         side: position.account.side.hasOwnProperty("long")
           ? Side.Long
           : Side.Short,
@@ -121,7 +121,7 @@ export function usePositions() {
 
 
     // console.log("finalPositionObject:", organizedPositionsObject);
-    setStorePositions(organizedPositionsObject);
+    setUserPositions(organizedPositionsObject);
   };
 
   useEffect(() => {

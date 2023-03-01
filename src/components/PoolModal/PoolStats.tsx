@@ -1,5 +1,5 @@
 import { useDailyPriceStats } from "@/hooks/useDailyPriceStats";
-import { Pool, PoolObj } from "@/lib/Pool";
+import { Pool, PoolObj } from "@/lib/PoolAccount";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useEffect } from "react";

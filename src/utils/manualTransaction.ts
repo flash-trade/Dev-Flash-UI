@@ -1,4 +1,4 @@
-import { sendSignedTransactionAndNotify } from "@/lib/TransactionHandlers";
+import { sendSignedTransactionAndNotify } from "@/utils/TransactionHandlers";
 import { Connection, Keypair, PublicKey, Transaction } from "@solana/web3.js";
 
 export async function manualSendTransaction(

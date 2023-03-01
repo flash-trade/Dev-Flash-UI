@@ -6,25 +6,36 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
 interface StoreState {
-  storePositions: PositionRequest;
-  setStorePositions: (position: PositionRequest) => void;
+  userPositions: PositionRequest;
+  setUserPositions: (position: PositionRequest) => void;
+
+  userLpTokens: Record<string, number>;
+  setUserLpTokens: (lpTokens: Record<string, number>) => void;
+
   pools: Map<string, Pool>;
   setPool: (custodies: Map<string, Pool>) => void;
   addPool: (custody: Pool) => void;
+
   custodies: Map<string, Custody>;
   setCustodies: (custodies: Map<string, Custody>) => void;
   addCustody: (custody: Custody) => void;
+  
   selectedPool: PoolConfig;
   setSelectedPool: (pool: PoolConfig) => void;
 }
 
-export const usePositionStore = create<StoreState>()(
+export const useGlobalStore = create<StoreState>()(
   devtools((set, get) => ({
     devtools: false,
-    storePositions: {
+    userPositions: {
       status: "pending",
     },
-    setStorePositions: (position: PositionRequest) => set({ storePositions: position }),
+    setUserPositions: (position: PositionRequest) => set({ userPositions: position }),
+    
+    userLpTokens: {},
+    setUserLpTokens: (lpTokens: Record<string, number>) =>
+      set({ userLpTokens: lpTokens }),
+
     pools: new Map<string, Pool>(),
     setPool: (pools: Map<string, Pool>) => set({ pools }),
     addPool: (pool: Pool) => set((state) => {
@@ -32,6 +43,7 @@ export const usePositionStore = create<StoreState>()(
       pools.set(pool.name, pool)
       return { pools: pools }
     }),
+
     custodies: new Map<string, Custody>(),
     setCustodies: (custodies: Map<string, Custody>) => set({ custodies }),
     addCustody: (custody: Custody) => set((state) => {

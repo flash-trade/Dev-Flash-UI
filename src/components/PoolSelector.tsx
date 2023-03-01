@@ -5,9 +5,9 @@ import { twMerge } from "tailwind-merge";
 import { useState } from "react";
 
 import { PoolTokens } from "./PoolTokens";
-import { Pool } from "@/lib/Pool";
+import { Pool } from "@/lib/PoolAccount";
 import { PoolConfig } from "@/utils/PoolConfig";
-import { usePositionStore } from "@/stores/store";
+import { useGlobalStore } from "@/stores/store";
 
 interface Props {
   className?: string;
@@ -19,7 +19,7 @@ interface Props {
 export function PoolSelector(props: Props) {
   const [open, setOpen] = useState(false);
   // console.log("props.pool", props.pool);
-  const setSelectedPool = usePositionStore(state => state.setSelectedPool)
+  const setSelectedPool = useGlobalStore(state => state.setSelectedPool)
 
   if (!props.pool) {
     return <p>Loading props.pools</p>;

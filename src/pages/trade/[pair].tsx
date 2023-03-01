@@ -3,12 +3,12 @@ import { useRouter } from "next/router";
 import { TradeLayout } from "@/components/Layouts/TradeLayout";
 import { CandlestickChart } from "@/components/Chart/CandlestickChart";
 import { TradeSidebar } from "@/components/TradeSidebar";
-import { asToken } from "@/lib/Token";
+import { asTokenE } from "@/utils/TokenUtils";
 import { Positions } from "@/components/Positions";
 
 function getToken(pair: string) {
   const [token, _] = pair.split("-");
-  return asToken(token || "");
+  return asTokenE(token || "");
 }
 
 function getComparisonCurrency(pair: string) {
@@ -23,7 +23,7 @@ export default function Page() {
     return <></>;
   }
 
-  let token: ReturnType<typeof getToken> = asToken(pair.split("-")[0]);
+  let token: ReturnType<typeof getToken> = asTokenE(pair.split("-")[0]);
   let currency: ReturnType<typeof getComparisonCurrency> =
     getComparisonCurrency(pair);
 

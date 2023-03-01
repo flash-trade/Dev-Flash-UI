@@ -1,4 +1,4 @@
-import { Token } from "./Token";
+import { TokenE } from "../utils/TokenUtils";
 
 export enum Side {
   None,
@@ -25,7 +25,7 @@ export interface Position {
   pnlDeltaPercent: number;
   size: number;
   timestamp: number;
-  token: Token;
+  token: TokenE;
   side: Side;
   value: number;
   valueDelta: number;
@@ -34,6 +34,6 @@ export interface Position {
 
 export interface UserPoolPositions {
   name: string;
-  tokens: Token[];
+  tokens: TokenE[];
   positions: Position[];
 }

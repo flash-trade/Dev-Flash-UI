@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { PositionInfo } from "./PositionInfo";
 import { PositionAdditionalInfo } from "./PositionAdditionalInfo";
-import { Position } from "@/lib/Position";
+import { Position } from "@/lib/PositionAccount";
 
 interface Props {
   className?: string;

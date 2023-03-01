@@ -1,5 +1,5 @@
-import { Pool } from "@/lib/Pool";
-import { getTokenAddress, Token } from "@/lib/Token";
+import { Pool } from "@/lib/PoolAccount";
+import { getTokenAddress, TokenE } from "@/utils/TokenUtils";
 import {
   getPerpetualProgramAndProvider,
   perpetualsAddress,
@@ -31,7 +31,7 @@ export async function changeLiquidity(
   publicKey: PublicKey,
   signTransaction: SignerWalletAdapterProps["signAllTransactions"],
   connection: Connection,
-  payToken: Token,
+  payToken: TokenE,
   tokenAmount?: number,
   liquidityAmount?: number
 ) {
@@ -61,7 +61,7 @@ export async function changeLiquidity(
       );
     }
 
-    if (payToken == Token.SOL) {
+    if (payToken == TokenE.SOL) {
       console.log("pay token name is sol", payToken);
 
       const associatedTokenAccount = await getAssociatedTokenAddress(
@@ -102,7 +102,7 @@ export async function changeLiquidity(
     if (tokenAmount) {
       console.log("in add liq", tokenAmount);
       let amount;
-      if (payToken === Token.SOL) {
+      if (payToken === TokenE.SOL) {
         amount = new BN(tokenAmount * LAMPORTS_PER_SOL);
       } else {
         amount = new BN(tokenAmount * 10e5);

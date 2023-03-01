@@ -1,7 +1,8 @@
 import { AllStats } from "@/hooks/useDailyPriceStats";
 import { BN } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
-import { Token } from "./Token";
+import { Pool } from "../types";
+import { TokenE } from "../utils/TokenUtils";
 
 interface VolumeStats {
   swap: number;
@@ -22,11 +23,11 @@ interface FeeStats {
 }
 
 export interface TokenCustody {
-  custodyAccount: PublicKey;
-  tokenAccount: PublicKey;
-  mintAccount: PublicKey;
-  oracleAccount: PublicKey;
-  name: Token;
+  custodyPk: PublicKey;
+  tokenAccountPk: PublicKey;
+  mintAccountPk: PublicKey;
+  oracleAccountPk: PublicKey;
+  name: TokenE;
   amount: BN;
   decimals: number;
   minRatio: number;
@@ -43,23 +44,24 @@ export interface CustodyMeta {
   isWritable: boolean;
 }
 
-export interface Pool {
+
+
+export class PoolObj {
+
   poolName: string;
   poolAddress: PublicKey;
   lpTokenMint: PublicKey;
   tokens: Record<string, TokenCustody>; // string is token mint address
-  tokenNames: Token[];
+  tokenNames: TokenE[];
   custodyMetas: CustodyMeta[];
   lpDecimals: number;
   lpSupply: number;
-  userLiquidity: number;
-}
 
-export class PoolObj {
-  constructor(pool: Pool) {
-    this.poolName = pool.poolName;
-    this.poolAddress = pool.poolAddress;
-    this.lpTokenMint = pool.lpTokenMint;
+
+  constructor(pool: Pool, poolAddress : PublicKey, lpTokenMint : PublicKey) {
+    this.poolName = pool.name;
+    this.poolAddress = poolAddress;
+    this.lpTokenMint = lpTokenMint;
     this.tokens = pool.tokens;
     this.tokenNames = pool.tokenNames;
     this.custodyMetas = pool.custodyMetas;

@@ -1,4 +1,4 @@
-import { getTokenLabel, tokenAddressToToken } from "@/lib/Token";
+import { getTokenELabel, tokenAddressToTokenE } from "@/utils/TokenUtils";
 import { perpsUser } from "@/utils/constants";
 import { manualSendTransaction } from "@/utils/manualTransaction";
 import { checkIfAccountExists } from "@/utils/retrieveData";
@@ -70,7 +70,7 @@ export default function AirdropButton(props: Props) {
       onClick={handleAirdrop}
     >
       Airdrop {'"'}
-      {getTokenLabel(tokenAddressToToken(props.mint))}
+      {getTokenELabel(tokenAddressToTokenE(props.mint))}
       {'"'}
     </SolidButton>
   );

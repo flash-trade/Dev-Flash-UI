@@ -1,4 +1,3 @@
-import { useUserStore } from "@/stores/userStore";
 import { getPerpetualProgramAndProvider } from "@/utils/constants";
 import { fetchLPBalance } from "@/utils/retrieveData";
 import { findProgramAddressSync } from "@project-serum/anchor/dist/cjs/utils/pubkey";

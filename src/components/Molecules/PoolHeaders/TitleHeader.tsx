@@ -1,8 +1,8 @@
 import { PoolTokens } from "@/components/PoolTokens";
 import { Pool } from "@/lib/Pool";
-import { tokenAddressToToken } from "@/lib/Token";
+import { tokenAddressToTokenE } from "@/utils/TokenUtils";
 import { twMerge } from "tailwind-merge";
-import { ACCOUNT_URL } from "@/lib/TransactionHandlers";
+import { ACCOUNT_URL } from "@/utils/TransactionHandlers";
 import NewTab from "@carbon/icons-react/lib/NewTab";
 
 interface Props {
@@ -32,12 +32,12 @@ export function TitleHeader(props: Props) {
         </a>
       </div>
       <div className="text-s mt-3 flex flex-row font-medium text-zinc-500">
-        <p>{tokenAddressToToken(Object.keys(props.pool.tokens)[0]!)}</p>
+        <p>{tokenAddressToTokenE(Object.keys(props.pool.tokens)[0]!)}</p>
 
         {Object.keys(props.pool.tokens)
           .slice(1)
           .map((tokenMint) => (
-            <p key={tokenMint.toString()}>, {tokenAddressToToken(tokenMint)}</p>
+            <p key={tokenMint.toString()}>, {tokenAddressToTokenE(tokenMint)}</p>
           ))}
       </div>
     </div>

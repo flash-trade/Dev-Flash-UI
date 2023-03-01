@@ -3,13 +3,13 @@ import { cloneElement } from "react";
 import GrowthIcon from "@carbon/icons-react/lib/Growth";
 import EditIcon from "@carbon/icons-react/lib/Edit";
 import ChevronDownIcon from "@carbon/icons-react/lib/ChevronDown";
-import { ACCOUNT_URL } from "@/lib/TransactionHandlers";
+import { ACCOUNT_URL } from "@/utils/TransactionHandlers";
 import NewTab from "@carbon/icons-react/lib/NewTab";
 
-import { getTokenIcon, getTokenLabel } from "@/lib/Token";
+import { getTokenEIcon, getTokenELabel } from "@/utils/TokenUtils";
 import { PositionColumn } from "./PositionColumn";
 import { PositionValueDelta } from "./PositionValueDelta";
-import { Position, Side } from "@/lib/Position";
+import { Position, Side } from "@/lib/PositionAccount";
 
 function formatPrice(num: number) {
   const formatter = new Intl.NumberFormat("en", {
@@ -27,7 +27,7 @@ interface Props {
 }
 
 export function PositionInfo(props: Props) {
-  const tokenIcon = getTokenIcon(props.position.token);
+  const tokenIcon = getTokenEIcon(props.position.token);
 
   return (
     <div className={twMerge("flex", "items-center", "py-5", props.className)}>
@@ -53,7 +53,7 @@ export function PositionInfo(props: Props) {
           <div className="pr-2">
             <div className="font-bold text-white">{props.position.token}</div>
             <div className="mt-0.5 truncate text-sm font-medium text-zinc-500">
-              {getTokenLabel(props.position.token)}
+              {getTokenELabel(props.position.token)}
             </div>
           </div>
         </div>

@@ -3,7 +3,7 @@ import CloseIcon from "@carbon/icons-react/lib/Close";
 import { cloneElement } from "react";
 
 import { useDailyPriceStats } from "@/hooks/useDailyPriceStats";
-import { Token, getTokenLabel, getTokenIcon, TOKEN_LIST } from "@/lib/Token";
+import { TokenE, getTokenELabel, getTokenEIcon, TOKEN_LIST } from "@/utils/TokenUtils";
 
 function formatNumber(num: number) {
   const formatter = Intl.NumberFormat("en", {
@@ -16,8 +16,8 @@ function formatNumber(num: number) {
 interface Props {
   className?: string;
   onClose?(): void;
-  onSelectToken?(token: Token): void;
-  tokenList?: Token[];
+  onSelectToken?(token: TokenE): void;
+  tokenList?: TokenE[];
 }
 
 export function TokenSelectorList(props: Props) {
@@ -40,7 +40,7 @@ export function TokenSelectorList(props: Props) {
         </header>
         <div className="mt-6">
           {(props.tokenList ? props.tokenList : TOKEN_LIST).map((token) => {
-            const icon = getTokenIcon(token);
+            const icon = getTokenEIcon(token);
 
             return (
               <button
@@ -67,7 +67,7 @@ export function TokenSelectorList(props: Props) {
                 <div className="text-left">
                   <div className="font-semibold text-white">{token}</div>
                   <div className="text-sm text-zinc-500">
-                    {getTokenLabel(token)}
+                    {getTokenELabel(token)}
                   </div>
                 </div>
                 {!!stats[token]?.currentPrice && (

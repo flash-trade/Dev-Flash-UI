@@ -1,4 +1,4 @@
-import { usePositionStore } from '@/stores/store'
+import { useGlobalStore } from '@/stores/store'
 import { Custody } from '@/types/index'
 import { getPerpetualProgramAndProvider } from '@/utils/constants'
 import { PoolConfig } from '@/utils/PoolConfig'
@@ -10,8 +10,8 @@ import { getEntryPriceAndFee } from '../viewHelpers'
 export const useHydrateStore = () => {
   const { connection } = useConnection();
   const wallet = useAnchorWallet();
-  const addCustody = usePositionStore(state => state.addCustody);
-  const addPool = usePositionStore(state => state.addPool);
+  const addCustody = useGlobalStore(state => state.addCustody);
+  const addPool = useGlobalStore(state => state.addPool);
 
   useEffect(() => {
     const pools = PoolConfig.getAllPoolConfigs();

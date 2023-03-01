@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { usePools } from "@/hooks/usePools";
 import { twMerge } from "tailwind-merge";
-import { Pool, PoolObj } from "@/lib/Pool";
+import { Pool, PoolObj } from "@/lib/PoolAccount";
 import { useRouter } from "next/router";
 import { TableHeader } from "@/components/Molecules/PoolHeaders/TableHeader";
 import { useDailyPriceStats } from "@/hooks/useDailyPriceStats";

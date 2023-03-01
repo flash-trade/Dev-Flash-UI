@@ -1,6 +1,6 @@
-import { Pool } from "@/lib/Pool";
-import { Side, TradeSide } from "@/lib/Position";
-import { getTokenAddress, Token } from "@/lib/Token";
+import { Pool } from "@/lib/PoolAccount";
+import { Side, TradeSide } from "@/lib/PositionAccount";
+import { getTokenAddress, TokenE } from "@/utils/TokenUtils";
 import {
   getPerpetualProgramAndProvider,
   perpetualsAddress,
@@ -33,8 +33,8 @@ export async function openPosition(
   publicKey: PublicKey,
   signTransaction,
   connection: Connection,
-  payToken: Token,
-  positionToken: Token,
+  payToken: TokenE,
+  positionToken: TokenE,
   payAmount: BN,
   positionAmount: BN,
   price: BN,
@@ -107,7 +107,7 @@ export async function openPosition(
 
   try {
     // wrap sol if needed
-    if (payToken == Token.SOL) {
+    if (payToken == TokenE.SOL) {
       console.log("pay token name is sol", payToken);
 
       const associatedTokenAccount = await getAssociatedTokenAddress(

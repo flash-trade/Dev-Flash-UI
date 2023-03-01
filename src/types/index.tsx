@@ -54,7 +54,7 @@ export interface CollectedFees {
 }
 
 export interface Fees {
-    mode: Mode;
+    mode: FeesMode;
     maxIncrease: BN;
     maxDecrease: BN;
     swap: BN;
@@ -66,11 +66,9 @@ export interface Fees {
     protocolShare: BN;
 }
 
-export interface Mode {
-    linear: Linear;
-}
-
-export interface Linear {
+export enum FeesMode {
+    Fixed,
+    Linear
 }
 
 export interface Oracle {
@@ -80,8 +78,10 @@ export interface Oracle {
     maxPriceAgeSec: number;
 }
 
-export interface OracleType {
-    pyth: Linear;
+export enum OracleType {
+    None,
+    Test,
+    Pyth,
 }
 
 export interface Permissions {

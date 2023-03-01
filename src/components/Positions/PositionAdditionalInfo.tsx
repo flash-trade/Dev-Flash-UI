@@ -1,6 +1,6 @@
 import { usePools } from "@/hooks/usePools";
-import { Pool } from "@/lib/Pool";
-import { Position } from "@/lib/Position";
+import { Pool } from "@/lib/PoolAccount";
+import { Position } from "@/lib/PositionAccount";
 import CloseIcon from "@carbon/icons-react/lib/Close";
 import EditIcon from "@carbon/icons-react/lib/Edit";
 import { BN } from "@project-serum/anchor";

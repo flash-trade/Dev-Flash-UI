@@ -3,18 +3,18 @@ import { cloneElement, useState } from "react";
 import ChevronDownIcon from "@carbon/icons-react/lib/ChevronDown";
 import { useRouter } from "next/router";
 
-import { Token, getTokenIcon, getTokenLabel } from "@/lib/Token";
+import { TokenE, getTokenEIcon, getTokenELabel } from "@/utils/TokenUtils";
 
 import { TokenSelectorList } from "../TokenSelectorList";
 
 interface Props {
   className?: string;
-  comparisonCurrency: "usd" | "eur" | Token.USDC | Token.USDT;
-  token: Token;
+  comparisonCurrency: "usd" | "eur" | TokenE.USDC | TokenE.USDT;
+  token: TokenE;
 }
 
 export function ChartCurrency(props: Props) {
-  const tokenIcon = getTokenIcon(props.token);
+  const tokenIcon = getTokenEIcon(props.token);
   const [selectorOpen, setSelectorOpen] = useState(false);
   const router = useRouter();
 
@@ -36,7 +36,7 @@ export function ChartCurrency(props: Props) {
         <div className="flex items-baseline space-x-2">
           <div className="text-3xl font-bold text-white">{props.token}</div>
           <div className="text-sm font-medium text-zinc-500">
-            {getTokenLabel(props.token)}
+            {getTokenELabel(props.token)}
           </div>
         </div>
         <div className="pl-4">

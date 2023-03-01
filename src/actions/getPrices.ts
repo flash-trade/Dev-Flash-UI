@@ -1,5 +1,5 @@
-import { Pool } from "@/lib/Pool";
-import { getTokenAddress, Token } from "@/lib/Token";
+import { Pool } from "@/lib/PoolAccount";
+import { getTokenAddress, TokenE } from "@/utils/TokenUtils";
 import {
   getPerpetualProgramAndProvider,
   perpetualsAddress,
@@ -16,7 +16,7 @@ export async function getEntryPrice(
   publicKey: PublicKey,
   signTransaction: SignerWalletAdapterProps["signAllTransactions"],
   connection: Connection,
-  payToken: Token,
+  payToken: TokenE,
   tokenAmount?: number,
   liquidityAmount?: number
 ) {

@@ -1,6 +1,6 @@
-import { Pool, PoolObj } from "@/lib/Pool";
-import { Side } from "@/lib/Position";
-import { getTokenAddress, Token } from "@/lib/Token";
+import { Pool, PoolObj } from "@/lib/PoolAccount";
+import { Side } from "@/lib/PositionAccount";
+import { getTokenAddress, TokenE } from "@/utils/TokenUtils";
 import {
   getPerpetualProgramAndProvider,
   perpetualsAddress,
@@ -30,8 +30,8 @@ export async function closePosition(
   publicKey: PublicKey,
   signTransaction,
   connection: Connection,
-  payToken: Token,
-  positionToken: Token,
+  payToken: TokenE,
+  positionToken: TokenE,
   positionAccountAddress: String,
   side: Side,
   price: BN

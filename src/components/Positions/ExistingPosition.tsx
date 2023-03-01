@@ -1,4 +1,4 @@
-import { PoolPositions } from "@/lib/Position";
+import { PoolPositions } from "@/lib/PositionAccount";
 import { twMerge } from "tailwind-merge";
 import { PoolTokens } from "../PoolTokens";
 import PoolPositionHeader from "./PoolPositionHeader";

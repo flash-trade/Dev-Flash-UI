@@ -1,4 +1,4 @@
-import { getTokenAddress, Token, tokenAddressToToken } from "@/lib/Token";
+import { getTokenAddress, TokenE, tokenAddressToTokenE } from "@/utils/TokenUtils";
 import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { SolidButton } from "@/components/SolidButton";
@@ -11,7 +11,7 @@ import Add from "@carbon/icons-react/lib/Add";
 import Subtract from "@carbon/icons-react/lib/Subtract";
 import { LpSelector } from "./LpSelector";
 import { changeLiquidity } from "src/actions/changeLiquidity";
-import { Pool } from "@/lib/Pool";
+import { Pool } from "@/lib/PoolAccount";
 import { fetchLPBalance, fetchTokenBalance } from "@/utils/retrieveData";
 import router from "next/router";
 import AirdropButton from "../AirdropButton";
@@ -42,7 +42,7 @@ export default function LiquidityCard(props: Props) {
   const { wallet, publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
   let tokenList = Object.keys(props.pool?.tokens).map((token) => {
-    return tokenAddressToToken(token);
+    return tokenAddressToTokenE(token);
   });
 
   const [payToken, setPayToken] = useState(tokenList[0]);

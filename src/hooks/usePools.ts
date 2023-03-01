@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { getPerpetualProgramAndProvider } from "@/utils/constants";
-import { getTokenAddress, tokenAddressToToken } from "@/lib/Token";
+import { getTokenAddress, tokenAddressToTokenE } from "@/utils/TokenUtils";
 import { PublicKey } from "@solana/web3.js";
 import { findProgramAddressSync } from "@project-serum/anchor/dist/cjs/utils/pubkey";
-import { Pool, PoolObj, TokenCustody } from "@/lib/Pool";
+import { Pool, PoolObj, TokenCustody } from "@/lib/PoolAccount";
 import { getMint } from "@solana/spl-token";
 
 export function usePools() {
@@ -38,7 +38,7 @@ export function usePools() {
               tokenAccount: custody.tokenAccount,
               mintAccount: custody.mint,
               oracleAccount: custody.oracle.oracleAccount,
-              name: tokenAddressToToken(custody.mint.toString()),
+              name: tokenAddressToTokenE(custody.mint.toString()),
               amount: custody.assets.owned,
               decimals: custody.decimals,
               minRatio: Number(pool.account.tokens[ind].minRatio),
@@ -75,7 +75,7 @@ export function usePools() {
           )[0];
 
           let tokenNames = Object.values(custodyInfos).map((custody) => {
-            return tokenAddressToToken(custody.mintAccount.toString());
+            return tokenAddressToTokenE(custody.mintAccount.toString());
           });
 
           let custodyMetas = [];

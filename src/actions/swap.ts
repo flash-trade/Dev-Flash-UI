@@ -1,6 +1,6 @@
-import { Pool } from "@/lib/Pool";
-import { Side, TradeSide } from "@/lib/Position";
-import { getTokenAddress, Token } from "@/lib/Token";
+import { Pool } from "@/lib/PoolAccount";
+import { Side, TradeSide } from "@/lib/PositionAccount";
+import { getTokenAddress, TokenE } from "@/utils/TokenUtils";
 import {
   getPerpetualProgramAndProvider,
   perpetualsAddress,
@@ -32,8 +32,8 @@ export async function swap(
   publicKey: PublicKey,
   signTransaction,
   connection: Connection,
-  receivingToken: Token,
-  dispensingToken: Token,
+  receivingToken: TokenE,
+  dispensingToken: TokenE,
   amountIn: BN,
   minAmountOut: BN,
 ) {

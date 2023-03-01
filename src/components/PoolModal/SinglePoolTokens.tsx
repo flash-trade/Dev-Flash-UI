@@ -1,9 +1,9 @@
 import { useDailyPriceStats } from "@/hooks/useDailyPriceStats";
 import { Pool } from "@/lib/Pool";
-import { getTokenIcon, getTokenLabel, tokenAddressToToken } from "@/lib/Token";
+import { getTokenEIcon, getTokenELabel, tokenAddressToTokenE } from "@/utils/TokenUtils";
 import { cloneElement } from "react";
 import { twMerge } from "tailwind-merge";
-import { ACCOUNT_URL } from "@/lib/TransactionHandlers";
+import { ACCOUNT_URL } from "@/utils/TransactionHandlers";
 import NewTab from "@carbon/icons-react/lib/NewTab";
 
 interface Props {
@@ -50,8 +50,8 @@ export default function SinglePoolTokens(props: Props) {
             </thead>
             <tbody className={twMerge("text-xs")}>
               {Object.entries(props.pool.tokens).map(([tokenMint, custody]) => {
-                const token = tokenAddressToToken(tokenMint);
-                const icon = getTokenIcon(token);
+                const token = tokenAddressToTokenE(tokenMint);
+                const icon = getTokenEIcon(token);
                 return (
                   <tr key={tokenMint} className="border-t border-zinc-700">
                     <td className="py-4">
@@ -61,10 +61,10 @@ export default function SinglePoolTokens(props: Props) {
                         })}
                         <div className="flex flex-col">
                           <p className="font-medium">
-                            {tokenAddressToToken(tokenMint)}
+                            {tokenAddressToTokenE(tokenMint)}
                           </p>
                           <p className={twMerge("text-xs", "text-zinc-500")}>
-                            {getTokenLabel(token)}
+                            {getTokenELabel(token)}
                           </p>
                         </div>
                         <a

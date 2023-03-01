@@ -1,6 +1,6 @@
 import { PoolTokens } from "@/components/PoolTokens";
-import { Pool } from "@/lib/Pool";
-import { tokenAddressToToken } from "@/lib/Token";
+import { Pool } from "@/lib/PoolAccount";
+import { tokenAddressToTokenE } from "@/utils/TokenUtils";
 import { twMerge } from "tailwind-merge";
 
 interface Props {
@@ -25,13 +25,13 @@ export function TableHeader(props: Props) {
           {props.pool.poolName}
         </p>
         <div className="flex flex-row text-xs font-medium text-zinc-500 ">
-          <p>{tokenAddressToToken(Object.keys(props.pool.tokens)[0]!)}</p>
+          <p>{tokenAddressToTokenE(Object.keys(props.pool.tokens)[0]!)}</p>
 
           {Object.keys(props.pool.tokens)
             .slice(1)
             .map((tokenMint) => (
               <p key={tokenMint.toString()}>
-                , {tokenAddressToToken(tokenMint)}
+                , {tokenAddressToTokenE(tokenMint)}
               </p>
             ))}
         </div>

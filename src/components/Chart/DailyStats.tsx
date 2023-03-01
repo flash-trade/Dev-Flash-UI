@@ -1,7 +1,7 @@
 import { twMerge } from "tailwind-merge";
 
 import { useDailyPriceStats } from "@/hooks/useDailyPriceStats";
-import { Token } from "@/lib/Token";
+import { TokenE } from "@/utils/TokenUtils";
 
 function formatNumber(number: number) {
   const formatter = Intl.NumberFormat("en", {
@@ -13,7 +13,7 @@ function formatNumber(number: number) {
 
 interface DailyStatsProps {
   className?: string;
-  token: Token;
+  token: TokenE;
 }
 
 export function DailyStats(props: DailyStatsProps) {

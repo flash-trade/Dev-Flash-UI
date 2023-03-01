@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
 import { useDailyPriceStats } from "@/hooks/useDailyPriceStats";
-import { asToken, Token, tokenAddressToToken } from "@/lib/Token";
+import { asTokenE, TokenE, tokenAddressToTokenE } from "@/utils/TokenUtils";
 
 import { TokenSelector } from "../TokenSelector";
 import { LeverageSlider } from "../LeverageSlider";
@@ -22,7 +22,7 @@ import { fetchTokenBalance } from "@/utils/retrieveData";
 
 import { usePositions } from "@/hooks/usePositions";
 import { PoolConfig } from "@/utils/PoolConfig";
-import { usePositionStore } from "@/stores/store";
+import { useGlobalStore } from "@/stores/store";
 
 interface Props {
   className?: string;
@@ -35,8 +35,8 @@ enum Input {
 }
 
 export function TradePosition(props: Props) {
-  const [payToken, setPayToken] = useState(Token.SOL);
-  const [positionToken, setPositionToken] = useState(Token.SOL);
+  const [payToken, setPayToken] = useState(TokenE.SOL);
+  const [positionToken, setPositionToken] = useState(TokenE.SOL);
   const [payTokenBalance, setPayTokenBalance] = useState<number | null>(null);
 
   const [payAmount, setPayAmount] = useState(0.1);
@@ -51,14 +51,14 @@ export function TradePosition(props: Props) {
 
   const { fetchPositions } = usePositions();
 
-  const pool = usePositionStore(state => state.selectedPool);
+  const pool = useGlobalStore(state => state.selectedPool);
 
   const allPriceStats = useDailyPriceStats();
   const router = useRouter();
 
   const { pair } = router.query;
 
-  let tokenList: Token[] = [];
+  let tokenList: TokenE[] = [];
 
   async function handleTrade() {
     await openPosition(
@@ -79,7 +79,7 @@ export function TradePosition(props: Props) {
   }
 
   useEffect(() => {
-    setPositionToken(asToken(pair.split("-")[0]));
+    setPositionToken(asTokenE(pair.split("-")[0]));
   }, [pair]);
 
   useEffect(() => {
@@ -132,7 +132,7 @@ export function TradePosition(props: Props) {
           }}
           onSelectToken={setPayToken}
           tokenList={Object.keys(pool.tokens).map((token) => {
-            return tokenAddressToToken(token);
+            return tokenAddressToTokenE(token);
           })}
         />
         <div className="mt-4 text-sm font-medium text-white">
@@ -152,7 +152,7 @@ export function TradePosition(props: Props) {
             router.push("/trade/" + token + "-USD");
           }}
           tokenList={Object.keys(pool.tokens).map((token) => {
-            return tokenAddressToToken(token);
+            return tokenAddressToTokenE(token);
           })}
         />
         <div className="mt-4 text-xs text-zinc-400">Pool</div>

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import { getTokenId, Token, TOKEN_LIST } from "@/lib/Token";
+import { getTokenEId, TokenE, TOKEN_LIST } from "@/utils/TokenUtils";
 
 interface Stats {
   change24hr: number;
@@ -9,7 +9,7 @@ interface Stats {
   low24hr: number;
 }
 
-export type AllStats = Record<Token, Stats>;
+export type AllStats = Record<TokenE, Stats>;
 
 const fetchAllStats = (() => {
   let inFlight: null | Promise<AllStats> = null;
@@ -25,7 +25,7 @@ const fetchAllStats = (() => {
 
     inFlight = fetch(
       `https://api.coingecko.com/api/v3/simple/price?ids=${TOKEN_LIST.map(
-        getTokenId
+        getTokenEId
       ).join(
         ","
       )}&vs_currencies=USD&include_24hr_vol=true&include_24hr_change=true`
@@ -36,7 +36,7 @@ const fetchAllStats = (() => {
           firstData = data;
         }
         const allStats = TOKEN_LIST.reduce((acc, token) => {
-          const tokenData = data[getTokenId(token)];
+          const tokenData = data[getTokenEId(token)];
 
           acc[token] = {
             change24hr: tokenData.usd_24h_change,
@@ -59,7 +59,7 @@ const fetchAllStats = (() => {
           console.log("fetching data all stats");
           console.log("token", token);
           console.log("data", data);
-          const tokenData = data[getTokenId(token)];
+          const tokenData = data[getTokenEId(token)];
 
           acc[token] = {
             change24hr: tokenData.usd_24h_change,
@@ -81,8 +81,8 @@ const fetchAllStats = (() => {
 })();
 
 export function useDailyPriceStats(): AllStats;
-export function useDailyPriceStats(token: Token): Stats;
-export function useDailyPriceStats(token?: Token) {
+export function useDailyPriceStats(token: TokenE): Stats;
+export function useDailyPriceStats(token?: TokenE) {
   const timer = useRef<number | null>(null);
 
   const [allStats, setAllStats] = useState<Partial<AllStats>>({});
