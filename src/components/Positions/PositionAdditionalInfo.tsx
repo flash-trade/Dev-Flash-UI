@@ -1,4 +1,4 @@
-import { usePools } from "@/hooks/usePools";
+import { usePoolData } from "@/hooks/usePoolData";
 import { Pool } from "@/lib/PoolAccount";
 import { Position } from "@/lib/PositionAccount";
 import CloseIcon from "@carbon/icons-react/lib/Close";
@@ -33,7 +33,7 @@ export function PositionAdditionalInfo(props: Props) {
   const { connection } = useConnection();
   const allPriceStats = useDailyPriceStats();
 
-  const { pools } = usePools();
+  const { pools } = usePoolData();
 
   let payToken = props.position.token;
   let positionToken = props.position.token;

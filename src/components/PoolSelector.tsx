@@ -19,7 +19,7 @@ interface Props {
 export function PoolSelector(props: Props) {
   const [open, setOpen] = useState(false);
   // console.log("props.pool", props.pool);
-  const setSelectedPool = useGlobalStore(state => state.setSelectedPool)
+  // const setSelectedPool = useGlobalStore(state => state.setSelectedPool)
 
   if (!props.pool) {
     return <p>Loading props.pools</p>;
@@ -86,7 +86,7 @@ export function PoolSelector(props: Props) {
                 "hover:bg-zinc-700"
               )}
               key={pool.poolAddress.toBase58()}
-              onClick={() => setSelectedPool(pool)}
+              // onClick={() => setSelectedPool(pool)}
             >
               <PoolTokens tokens={pool.tokens.map(t => t.symbol)} /> 
               <div>

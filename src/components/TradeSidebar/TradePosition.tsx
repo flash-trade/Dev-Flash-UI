@@ -51,7 +51,7 @@ export function TradePosition(props: Props) {
 
   const { fetchPositions } = usePositions();
 
-  const pool = useGlobalStore(state => state.selectedPool);
+  // const pool = useGlobalStore(state => state.selectedPool);
 
   const allPriceStats = useDailyPriceStats();
   const router = useRouter();
@@ -156,11 +156,11 @@ export function TradePosition(props: Props) {
           })}
         />
         <div className="mt-4 text-xs text-zinc-400">Pool</div>
-        <PoolSelector
+        {/* <PoolSelector
           className="mt-2"
           pool={pool}
           pools={PoolConfig.getAllPoolConfigs()}
-        />
+        /> */}
         <LeverageSlider
           className="mt-6"
           value={leverage}

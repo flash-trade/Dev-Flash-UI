@@ -1,80 +1,65 @@
 import { AllStats } from "@/hooks/useDailyPriceStats";
+import { PoolConfig } from "@/utils/PoolConfig";
 import { BN } from "@project-serum/anchor";
+import {  Mint } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
-import { Pool } from "../types";
-import { TokenE } from "../utils/TokenUtils";
+import { Custody, Pool, Token } from "../types";
 
-interface VolumeStats {
-  swap: number;
-  addLiquidity: number;
-  removeLiquidity: number;
-  openPosition: number;
-  closePosition: number;
-  liquidation: number;
-}
+export class PoolAccount {
 
-interface FeeStats {
-  swap: number;
-  addLiquidity: number;
-  removeLiquidity: number;
-  openPosition: number;
-  closePosition: number;
-  liquidation: number;
-}
+  public poolConfig: PoolConfig;
+  public poolData : Pool;
+  public lpTokenInfo : Mint;
+  public custodies : Custody[];
 
-export interface TokenCustody {
-  custodyPk: PublicKey;
-  tokenAccountPk: PublicKey;
-  mintAccountPk: PublicKey;
-  oracleAccountPk: PublicKey;
-  name: TokenE;
-  amount: BN;
-  decimals: number;
-  minRatio: number;
-  maxRatio: number;
-  volume: VolumeStats;
-  oiLong: number;
-  oiShort: number;
-  fees: FeeStats;
-}
-
-export interface CustodyMeta {
-  pubkey: PublicKey;
-  isSigner: boolean;
-  isWritable: boolean;
-}
-
-
-
-export class PoolObj {
-
-  poolName: string;
-  poolAddress: PublicKey;
-  lpTokenMint: PublicKey;
-  tokens: Record<string, TokenCustody>; // string is token mint address
-  tokenNames: TokenE[];
-  custodyMetas: CustodyMeta[];
-  lpDecimals: number;
-  lpSupply: number;
-
-
-  constructor(pool: Pool, poolAddress : PublicKey, lpTokenMint : PublicKey) {
-    this.poolName = pool.name;
-    this.poolAddress = poolAddress;
-    this.lpTokenMint = lpTokenMint;
-    this.tokens = pool.tokens;
-    this.tokenNames = pool.tokenNames;
-    this.custodyMetas = pool.custodyMetas;
-    this.lpDecimals = pool.lpDecimals;
-    this.lpSupply = pool.lpSupply;
+  
+  constructor(poolConfig: PoolConfig, poolData : Pool, lpTokenInfo : Mint, custodies : Custody[]) {
+   this.poolConfig = poolConfig;
+   this.poolData = poolData;
+   this.lpTokenInfo = lpTokenInfo;
+   this.custodies = custodies;
   }
 
-  getLiquidities(stats: AllStats) {
-    // get liquidities from token custodies
-    if (stats === undefined) {
-      return;
-    }
+  loadCustodies(custodies : Custody[]){
+    this.custodies = custodies;
+  }
 
+  loadPoolData(poolData : Pool){
+    this.poolData = poolData
+  }
+
+  loadlpData(lpTokenInfo : Mint){
+    this.lpTokenInfo = lpTokenInfo
+  }
+
+  getLPtokenSupply(){
+     return this.lpTokenInfo.supply;
+  }
+
+  getOiLongUI() {
+     let totalAmount = new BN('0');
+     this.custodies.forEach(i => {
+      totalAmount =  totalAmount.add(i.tradeStats.oiLongUsd); 
+     })
+    return (totalAmount.toNumber() / 10 ** 6).toFixed(2);
+  }
+
+  getOiShortUI() {
+    let totalAmount = new BN('0');
+    this.custodies.forEach(i => {
+     totalAmount =  totalAmount.add(i.tradeStats.oiShortUsd); 
+     })
+   return (totalAmount.toNumber() / 10 ** 6).toFixed(2);
+  }
+
+  getPoolTokenValue(stats: AllStats) {
+    // get liquidities from token custodies
+
+    let totalAmount = new BN('0');
+    this.custodies.forEach(i => {
+     totalAmount =  totalAmount.add(i.assets.owned); 
+     })
+  
     const totalAmount = Object.values(this.tokens).reduce(
       (acc: number, tokenCustody) => {
         let singleLiq =
@@ -84,7 +69,6 @@ export class PoolObj {
       },
       0
     );
-
     return totalAmount.toFixed(2);
   }
 
@@ -98,31 +82,10 @@ export class PoolObj {
       },
       0
     );
-
     return (totalAmount / 10 ** 6).toFixed(2);
   }
 
-  getOiLong() {
-    const totalAmount = Object.values(this.tokens).reduce(
-      (acc: number, tokenCustody: TokenCustody) => {
-        return acc + tokenCustody.oiLong;
-      },
-      0
-    );
-
-    return (totalAmount / 10 ** 6).toFixed(2);
-  }
-
-  getOiShort() {
-    const totalAmount = Object.values(this.tokens).reduce(
-      (acc: number, tokenCustody: TokenCustody) => {
-        return acc + tokenCustody.oiShort;
-      },
-      0
-    );
-
-    return (totalAmount / 10 ** 6).toFixed(2);
-  }
+  
 
   getFees() {
     const totalAmount = Object.values(this.tokens).reduce(
@@ -133,7 +96,6 @@ export class PoolObj {
       },
       0
     );
-
     return (totalAmount / 10 ** 6).toFixed(2);
   }
 }

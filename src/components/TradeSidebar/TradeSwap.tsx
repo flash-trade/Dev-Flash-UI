@@ -7,7 +7,7 @@ import { TokenSelector } from "../TokenSelector";
 import { SolidButton } from "../SolidButton";
 import { TradeSwapDetails } from "./TradeSwapDetails";
 import { swap } from "src/actions/swap";
-import { usePools } from "@/hooks/usePools";
+import { usePoolData } from "@/hooks/usePoolData";
 import { Pool } from "@/lib/PoolAccount";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { BN } from "@project-serum/anchor";
@@ -25,7 +25,7 @@ export function TradeSwap(props: Props) {
 
   const allPriceStats = useDailyPriceStats();
 
-  const { pools } = usePools();
+  const { pools } = usePoolData();
   const { connection } = useConnection();
   const router = useRouter();
 

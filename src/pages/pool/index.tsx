@@ -4,23 +4,20 @@ import { TitleHeader } from "@/components/Molecules/PoolHeaders/TitleHeader";
 import LiquidityCard from "@/components/PoolModal/LiquidityCard";
 import PoolStats from "@/components/PoolModal/PoolStats";
 import SinglePoolTokens from "@/components/PoolModal/SinglePoolTokens";
-import { usePools } from "@/hooks/usePools";
+import { usePoolData } from "@/hooks/usePoolData";
 import { ChevronLeft } from "@carbon/icons-react";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { useRouter } from "next/router";
 
-interface Props {}
 
-export default function SinglePool(props: Props) {
-  const { wallet } = useWallet();
-  const { pools } = usePools();
-  const router = useRouter();
 
-  if (!pools) {
+
+export default function PoolPage() {
+
+  const { pool } = usePoolData();
+
+  if (!pool) {
     return <p className="text-white">Loading...</p>;
   }
 
-  let pool = pools[router.query.poolName as string];
   return (
     <PoolLayout className="text-white">
       <div>
@@ -31,7 +28,7 @@ export default function SinglePool(props: Props) {
         <PoolStats pool={pool!} className="mb-8" />
         <SinglePoolTokens pool={pool!} />
       </div>
-      <LiquidityCard pool={pool!} />
+      <LiquidityCard pool={pool} />
     </PoolLayout>
   );
 }

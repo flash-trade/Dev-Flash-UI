@@ -1,15 +1,15 @@
 import { PoolTokens } from "@/components/PoolTokens";
-import { Pool } from "@/lib/Pool";
 import { tokenAddressToTokenE } from "@/utils/TokenUtils";
 import { twMerge } from "tailwind-merge";
 import { ACCOUNT_URL } from "@/utils/TransactionHandlers";
 import NewTab from "@carbon/icons-react/lib/NewTab";
+import { PoolAccount } from "@/lib/PoolAccount";
 
 interface Props {
   className?: string;
   iconClassName?: string;
   poolClassName?: string;
-  pool: Pool;
+  pool: PoolAccount;
 }
 
 export function TitleHeader(props: Props) {

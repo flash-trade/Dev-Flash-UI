@@ -11,7 +11,7 @@ import Add from "@carbon/icons-react/lib/Add";
 import Subtract from "@carbon/icons-react/lib/Subtract";
 import { LpSelector } from "./LpSelector";
 import { changeLiquidity } from "src/actions/changeLiquidity";
-import { Pool } from "@/lib/PoolAccount";
+import {  PoolAccount } from "@/lib/PoolAccount";
 import { fetchLPBalance, fetchTokenBalance } from "@/utils/retrieveData";
 import router from "next/router";
 import AirdropButton from "../AirdropButton";
@@ -20,7 +20,7 @@ import { useDailyPriceStats } from "@/hooks/useDailyPriceStats";
 
 interface Props {
   className?: string;
-  pool: Pool;
+  pool: PoolAccount;
 }
 
 enum Tab {

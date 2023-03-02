@@ -18,7 +18,6 @@ export interface Token {
 }
 
 export interface Custody {
-    pool: PublicKey;
     mint: PublicKey;
     tokenAccount: PublicKey;
     decimals: number;

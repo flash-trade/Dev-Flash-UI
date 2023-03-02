@@ -1,5 +1,5 @@
 import { useDailyPriceStats } from "@/hooks/useDailyPriceStats";
-import { Pool, PoolObj } from "@/lib/PoolAccount";
+import { Pool, PoolAccount } from "@/lib/PoolAccount";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useEffect } from "react";
@@ -20,7 +20,7 @@ export default function PoolStats(props: Props) {
 
   const { userLpTokens } = useUserData();
 
-  function getLiquidityBalance(pool: PoolObj): number {
+  function getLiquidityBalance(pool: PoolAccount): number {
     let userLpBalance = userLpTokens[pool.poolAddress.toString()];
     let lpSupply = pool.lpSupply / 10 ** pool.lpDecimals;
 
@@ -33,7 +33,7 @@ export default function PoolStats(props: Props) {
     return userLiquidity;
   }
 
-  function getLiquidityShare(pool: PoolObj): number {
+  function getLiquidityShare(pool: PoolAccount): number {
     let userLpBalance = userLpTokens[pool.poolAddress.toString()];
     let lpSupply = pool.lpSupply / 10 ** pool.lpDecimals;
 
