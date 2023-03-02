@@ -20,7 +20,7 @@ interface StoreState {
 
   custodies: Map<string, Custody>;
   setCustodies: (custodies: Map<string, Custody>) => void;
-  addCustody: (custody: Custody) => void;
+  addCustody: (custodyPk: string, custody: Custody) => void;
 }
 
 export const useGlobalStore = create<StoreState>()(
@@ -43,9 +43,9 @@ export const useGlobalStore = create<StoreState>()(
 
     custodies: new Map<string, Custody>(),
     setCustodies: (custodies: Map<string, Custody>) => set({ custodies }),
-    addCustody: (custody: Custody) => set((state) => {
+    addCustody: (custodyPk: string, custody: Custody) => set((state) => {
       const custodies = new Map<string, Custody>(state.custodies);
-      custodies.set(custody.mint.toBase58(), custody)
+      custodies.set(custodyPk, custody)
       return { custodies: custodies }
     }),
 

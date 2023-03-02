@@ -9,6 +9,7 @@ import { useGlobalStore } from "@/stores/store";
 import { PoolConfig } from "@/utils/PoolConfig";
 import { BN } from "@project-serum/anchor";
 import { Pool } from "../types";
+import { CustodyAccount } from "@/lib/CustodyAccount";
 
 
 export interface ViewPoolData {
@@ -79,7 +80,13 @@ export function usePoolData() {
 
     if(!poolData || !lpMintData) return defaultData;
 
-    const pool = new PoolAccount(poolConfig, poolData, lpMintData, Array.from(custodies.values()))
+    // const pool = new PoolAccount(poolConfig, poolData, lpMintData, Array.from([custodies.keys(), custodies.values()]).map(t => CustodyAccount.from(new PublicKey(t), {...(custodies.get(t))}))
+    const pool = new PoolAccount(
+      poolConfig, 
+      poolData, 
+      lpMintData,
+      Array.from(custodies, ([key, value]) => CustodyAccount.from(new PublicKey(key), {...value}))
+    )
     return {
       oiLong: pool.getOiLongUI(),
       oiShort: pool.getOiShortUI(),

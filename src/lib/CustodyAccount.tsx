@@ -1,6 +1,6 @@
 import { BN } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
-import { Assets, CollectedFees, Custody, Fees, Oracle,  Pricing, TradeStats } from "../types";
+import { Assets, CollectedFees, Custody, Fees, Oracle,  Pricing, TradeStats, Permissions } from "../types";
 
 
 export class CustodyAccount {
@@ -8,7 +8,6 @@ export class CustodyAccount {
     static from(
         publicKey: PublicKey,
         obj: {
-          pool: PublicKey;
           mint: PublicKey;
           tokenAccount: PublicKey;
           decimals: number;
@@ -45,7 +44,7 @@ export class CustodyAccount {
       }
   
     constructor(
-        public pool: PublicKey,
+        public publicKey: PublicKey, 
         public mint: PublicKey,
         public tokenAccount: PublicKey,
         public decimals: number,

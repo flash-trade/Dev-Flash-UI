@@ -3,23 +3,23 @@ import { BN } from "@project-serum/anchor";
 import {  Mint } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
 import { Custody, Pool, Token } from "../types";
+import { CustodyAccount } from "./CustodyAccount";
 
 export class PoolAccount {
 
   public poolConfig: PoolConfig;
   public poolData : Pool;
   public lpTokenInfo : Mint;
-  public custodies : Custody[];
-
+  public custodies : CustodyAccount[];
   
-  constructor(poolConfig: PoolConfig, poolData : Pool, lpTokenInfo : Mint, custodies : Custody[]) {
+  constructor(poolConfig: PoolConfig, poolData : Pool, lpTokenInfo : Mint, custodies : CustodyAccount[]) {
    this.poolConfig = poolConfig;
    this.poolData = poolData;
    this.lpTokenInfo = lpTokenInfo;
    this.custodies = custodies;
   }
 
-  loadCustodies(custodies : Custody[]){
+  loadCustodies(custodies : CustodyAccount[]){
     this.custodies = custodies;
   }
 
