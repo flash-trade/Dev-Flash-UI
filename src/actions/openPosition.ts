@@ -58,8 +58,8 @@ export async function openPosition(
     side.toString()
   );
 
-  const poolTokenCustody = POOL_CONFIG.custodies.find(i => i.mintKey.toBase58()=== getTokenAddress(payToken));
-  if(!poolTokenCustody){
+  const payTokenCustody = POOL_CONFIG.custodies.find(i => i.mintKey.toBase58()=== getTokenAddress(payToken));
+  if(!payTokenCustody){
     throw "poolTokenCustody  not found";
   }
 
@@ -79,7 +79,7 @@ export async function openPosition(
       Buffer.from("position") ,
       publicKey.toBuffer(),
       POOL_CONFIG.poolAddress.toBuffer(),
-      poolTokenCustody.custodyAccount.toBuffer(),
+      payTokenCustody.custodyAccount.toBuffer(),
       side.toString() == "Long" ?  Buffer.from([1]) :  Buffer.from([2]),
     ],
     perpetual_program.programId
@@ -145,11 +145,11 @@ export async function openPosition(
         perpetuals: perpetualsAddress,
         pool: POOL_CONFIG.poolAddress,
         position: positionAccount,
-        custody: poolTokenCustody.custodyAccount,
+        custody: payTokenCustody.custodyAccount,
         custodyOracleAccount:
-        poolTokenCustody.oracleAddress,
+        payTokenCustody.oracleAddress,
         custodyTokenAccount:
-        poolTokenCustody.tokenAccount,
+        payTokenCustody.tokenAccount,
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
       })

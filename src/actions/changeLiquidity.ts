@@ -3,6 +3,7 @@ import { getTokenAddress, TokenE } from "@/utils/TokenUtils";
 import {
   getPerpetualProgramAndProvider,
   perpetualsAddress,
+  POOL_CONFIG,
   transferAuthorityAddress,
 } from "@/utils/constants";
 import { manualSendTransaction } from "@/utils/manualTransaction";
@@ -26,7 +27,6 @@ import {
 } from "@solana/web3.js";
 
 export async function changeLiquidity(
-  pool: Pool,
   wallet: Wallet,
   publicKey: PublicKey,
   signTransaction: SignerWalletAdapterProps["signAllTransactions"],
@@ -38,12 +38,17 @@ export async function changeLiquidity(
   let { perpetual_program } = await getPerpetualProgramAndProvider(wallet);
 
   let lpTokenAccount = await getAssociatedTokenAddress(
-    pool.lpTokenMint,
+    POOL_CONFIG.lpTokenMint,
     publicKey
   );
 
+  const payTokenCustody = POOL_CONFIG.custodies.find(i => i.mintKey.toBase58()=== getTokenAddress(payToken));
+  if(!payTokenCustody){
+    throw "poolTokenCustody  not found";
+  }
+
   let userCustodyTokenAccount = await getAssociatedTokenAddress(
-    pool.tokens[getTokenAddress(payToken)]?.mintAccount!,
+    payTokenCustody.mintKey!,
     publicKey
   );
 
@@ -56,7 +61,7 @@ export async function changeLiquidity(
           publicKey,
           lpTokenAccount,
           publicKey,
-          pool.lpTokenMint
+          POOL_CONFIG.lpTokenMint
         )
       );
     }
@@ -98,7 +103,6 @@ export async function changeLiquidity(
       }
     }
 
-    console.log("custodies", pool.custodyMetas);
     if (tokenAmount) {
       console.log("in add liq", tokenAmount);
       let amount;
@@ -115,13 +119,11 @@ export async function changeLiquidity(
           lpTokenAccount,
           transferAuthority: transferAuthorityAddress,
           perpetuals: perpetualsAddress,
-          pool: pool.poolAddress,
-          custody: pool.tokens[getTokenAddress(payToken)]?.custodyAccount,
-          custodyOracleAccount:
-            pool.tokens[getTokenAddress(payToken)]?.oracleAccount,
-          custodyTokenAccount:
-            pool.tokens[getTokenAddress(payToken)]?.tokenAccount,
-          lpTokenMint: pool.lpTokenMint,
+          pool: POOL_CONFIG.poolAddress,
+          custody: payTokenCustody.custodyAccount,
+          custodyOracleAccount: payTokenCustody.oracleAddress,
+          custodyTokenAccount: payTokenCustody.tokenAccount,
+          lpTokenMint: POOL_CONFIG.lpTokenMint,
           tokenProgram: TOKEN_PROGRAM_ID,
         })
         .remainingAccounts(pool.custodyMetas)
@@ -129,7 +131,7 @@ export async function changeLiquidity(
       transaction = transaction.add(addLiquidityTx);
     }
     if (liquidityAmount) {
-      let lpAmount = new BN(liquidityAmount * 10 ** pool.lpDecimals);
+      let lpAmount = new BN(liquidityAmount * 10 ** POOL_CONFIG.lpDecimals);
       let removeLiquidityTx = await perpetual_program.methods
         .removeLiquidity({ lpAmount })
         .accounts({
@@ -138,13 +140,11 @@ export async function changeLiquidity(
           lpTokenAccount,
           transferAuthority: transferAuthorityAddress,
           perpetuals: perpetualsAddress,
-          pool: pool.poolAddress,
-          custody: pool.tokens[getTokenAddress(payToken)]?.custodyAccount,
-          custodyOracleAccount:
-            pool.tokens[getTokenAddress(payToken)]?.oracleAccount,
-          custodyTokenAccount:
-            pool.tokens[getTokenAddress(payToken)]?.tokenAccount,
-          lpTokenMint: pool.lpTokenMint,
+          pool: POOL_CONFIG.poolAddress,
+          custody: payTokenCustody.custodyAccount,
+          custodyOracleAccount: payTokenCustody.oracleAddress,
+          custodyTokenAccount: payTokenCustody.tokenAccount,
+          lpTokenMint: POOL_CONFIG.lpTokenMint,
           tokenProgram: TOKEN_PROGRAM_ID,
         })
         .remainingAccounts(pool.custodyMetas)
@@ -157,11 +157,7 @@ export async function changeLiquidity(
 
     if (transaction.instructions.length > 0) {
       for (let i = 0; i < transaction.instructions[0]!.keys.length; i++) {
-        console.log(
-          "key",
-          i,
-          transaction.instructions[0]!.keys[i]?.pubkey.toString()
-        );
+        console.log("key",i,transaction.instructions[0]!.keys[i]?.pubkey.toString());
       }
     }
     await manualSendTransaction(

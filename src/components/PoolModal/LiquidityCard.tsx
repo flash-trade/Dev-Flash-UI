@@ -74,7 +74,7 @@ export default function LiquidityCard(props: Props) {
       setLiqBalance(lpBalance);
 
       const mintInfo = await getMint(connection, POOL_CONFIG.lpTokenMint);
-      if(mintInfo && mintInfo.supply.toString()){
+      if(mintInfo && mintInfo.supply.toString() && poolData){
         const liqratio =  (new BN(mintInfo.supply.toString())).div(poolData.lpStats.totalPoolValue).div(new BN(10 ** mintInfo.decimals));
         setLiqRatio(liqratio.toNumber());
       }
@@ -102,9 +102,9 @@ export default function LiquidityCard(props: Props) {
     // router.reload(window.location.pathname);
   }
 
-  async function onChangeAmtLiq(tokenAmtUsd: number) {
-    setLiqAmount(tokenAmtUsd * liqRatio);
-  }
+  // async function onChangeAmtLiq(tokenAmtUsd: number) {
+  //   setLiqAmount(tokenAmtUsd * liqRatio);
+  // }
 
   return (
     <div className={props.className}>
