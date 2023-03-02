@@ -52,6 +52,24 @@ export async function changeLiquidity(
     publicKey
   );
 
+  let custodyAccountMetas = [];
+  let custodyOracleAccountMetas = [];
+  for (const custody of POOL_CONFIG.custodies) {
+    custodyAccountMetas.push({
+      pubkey: custody.custodyAccount,
+      isSigner: false,
+      isWritable: false,
+    });
+
+    custodyOracleAccountMetas.push({
+      pubkey: custody.oracleAddress,
+      isSigner: false,
+      isWritable: false,
+    });
+  }
+
+
+
   let transaction = new Transaction();
 
   try {
@@ -126,7 +144,7 @@ export async function changeLiquidity(
           lpTokenMint: POOL_CONFIG.lpTokenMint,
           tokenProgram: TOKEN_PROGRAM_ID,
         })
-        .remainingAccounts(pool.custodyMetas)
+        .remainingAccounts([...custodyAccountMetas, ...custodyOracleAccountMetas])
         .transaction();
       transaction = transaction.add(addLiquidityTx);
     }
@@ -147,7 +165,7 @@ export async function changeLiquidity(
           lpTokenMint: POOL_CONFIG.lpTokenMint,
           tokenProgram: TOKEN_PROGRAM_ID,
         })
-        .remainingAccounts(pool.custodyMetas)
+        .remainingAccounts([...custodyAccountMetas, ...custodyOracleAccountMetas])
         .transaction();
       transaction = transaction.add(removeLiquidityTx);
     }

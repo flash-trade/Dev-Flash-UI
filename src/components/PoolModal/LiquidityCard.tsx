@@ -89,7 +89,6 @@ export default function LiquidityCard(props: Props) {
   async function changeLiq() {
     console.log("before change", tab === Tab.Remove, liqAmount);
     await changeLiquidity(
-      props.pool,
       wallet!,
       publicKey,
       signTransaction,
