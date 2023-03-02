@@ -5,8 +5,6 @@ import { Assets, CollectedFees, Custody, Fees, Oracle,  Pricing, TradeStats } fr
 
 export class CustodyAccount {
 
-    public x : number;    
-
     static from(
         publicKey: PublicKey,
         obj: {
@@ -43,7 +41,6 @@ export class CustodyAccount {
           obj.collectedFees,
           obj.volumeStats,
           obj.tradeStats,
-          100
         );
       }
   
@@ -63,9 +60,7 @@ export class CustodyAccount {
         public collectedFees: CollectedFees,
         public volumeStats: CollectedFees,
         public tradeStats: TradeStats,
-        x : number
       ) {
-        this.x = x;
       }
 
       updateCustodyData(custody: Custody) {

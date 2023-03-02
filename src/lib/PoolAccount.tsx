@@ -52,50 +52,51 @@ export class PoolAccount {
    return (totalAmount.toNumber() / 10 ** 6).toFixed(2);
   }
 
-  getPoolTokenValue(stats: AllStats) {
-    // get liquidities from token custodies
+  // handle decimal and this should accept a list of prices probs map or object
+  getCustodyDetails(price: BN = new BN(0)) {
+    const custodyWeights = [];
+    for (const custody of this.poolConfig.custodies) {
+      const token = this.poolData.tokens.find(t => t.custody.toBase58() === custody.custodyAccount.toBase58());
+      // const custodyData = this.custodies.find(f => f.)
+      // (custody.owned * price)/pool.aumUsd
+      const custodyData = this.custodies.find(t => t.mint.toBase58() === custody.mintKey.toBase58())
 
-    let totalAmount = new BN('0');
-    this.custodies.forEach(i => {
-     totalAmount =  totalAmount.add(i.assets.owned); 
-     })
-  
-    const totalAmount = Object.values(this.tokens).reduce(
-      (acc: number, tokenCustody) => {
-        let singleLiq =
-          stats[tokenCustody.name].currentPrice *
-          (Number(tokenCustody.amount) / 10 ** tokenCustody.decimals);
-        return acc + singleLiq;
-      },
-      0
-    );
-    return totalAmount.toFixed(2);
+      if(custodyData && token) {
+        custodyWeights.push({
+          symbol: custody.symbol,
+          price: price,
+          targetWeight: token.targetRatio,
+          currentWeight: (custodyData.assets.owned.mul(price)).div(this.poolData.aumUsd),
+          utilization: custodyData.assets.locked.div(custodyData.assets.owned),
+        })
+      }
+    }
   }
 
-  getTradeVolumes() {
-    const totalAmount = Object.values(this.tokens).reduce(
-      (acc: number, tokenCustody: TokenCustody) => {
-        return (
-          acc +
-          Object.values(tokenCustody.volume).reduce((acc, val) => acc + val)
-        );
-      },
-      0
-    );
-    return (totalAmount / 10 ** 6).toFixed(2);
-  }
+  getPoolStats() {
+    let totalFees = new BN(0)
+    let totalVolume = new BN(0)
+    let currentLongPositionsUsd = new BN(0)
+    let currentShortPositionsUsd = new BN(0)
 
-  
+    for (const custody of this.poolConfig.custodies) {
+      const custodyData = this.custodies.find(t => t.mint.toBase58() === custody.mintKey.toBase58())
+      if (custodyData) {  
+        const custodyFeeTotal = Object.values(custodyData.collectedFees).reduce((a: BN, b: BN) => a.add(b), new BN(0))
+        totalFees.add(custodyFeeTotal)
 
-  getFees() {
-    const totalAmount = Object.values(this.tokens).reduce(
-      (acc: number, tokenCustody: TokenCustody) => {
-        return (
-          acc + Object.values(tokenCustody.fees).reduce((acc, val) => acc + val)
-        );
-      },
-      0
-    );
-    return (totalAmount / 10 ** 6).toFixed(2);
+        const custodyVolume = Object.values(custodyData.volumeStats).reduce((a: BN, b: BN) => a.add(b), new BN(0))
+        totalVolume.add(custodyVolume)
+
+        currentLongPositionsUsd.add(custodyData.tradeStats.oiLongUsd)
+        currentShortPositionsUsd.add(custodyData.tradeStats.oiShortUsd)
+      }
+    }
+    return {
+      totalFees,
+      totalVolume,
+      currentLongPositionsUsd,
+      currentShortPositionsUsd
+    }
   }
 }
