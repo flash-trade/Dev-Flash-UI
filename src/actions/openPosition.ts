@@ -31,7 +31,7 @@ import {
 export async function openPosition(
   wallet: Wallet,
   publicKey: PublicKey,
-  signTransaction,
+  signTransaction : any,
   connection: Connection,
   payToken: TokenE,
   positionToken: TokenE,

@@ -63,8 +63,7 @@ export function TradePosition(props: Props) {
 
   async function handleTrade() {
     await openPosition(
-      pool,
-      wallet,
+      wallet!,
       publicKey,
       signTransaction,
       connection,

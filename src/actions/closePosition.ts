@@ -1,34 +1,27 @@
-import { Pool, PoolAccount } from "@/lib/PoolAccount";
 import { Side } from "@/lib/PositionAccount";
 import { getTokenAddress, TokenE } from "@/utils/TokenUtils";
 import {
   getPerpetualProgramAndProvider,
   perpetualsAddress,
-  PERPETUALS_PROGRAM_ID,
+  POOL_CONFIG,
   transferAuthorityAddress,
 } from "@/utils/constants";
 import { manualSendTransaction } from "@/utils/manualTransaction";
-import { checkIfAccountExists } from "@/utils/retrieveData";
 import { BN, Wallet } from "@project-serum/anchor";
-import { findProgramAddressSync } from "@project-serum/anchor/dist/cjs/utils/pubkey";
 import {
-  createAssociatedTokenAccountInstruction,
   getAssociatedTokenAddress,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import {
   Connection,
-  LAMPORTS_PER_SOL,
   PublicKey,
-  SystemProgram,
   Transaction,
 } from "@solana/web3.js";
 
 export async function closePosition(
-  pool: PoolAccount,
   wallet: Wallet,
   publicKey: PublicKey,
-  signTransaction,
+  signTransaction : any ,
   connection: Connection,
   payToken: TokenE,
   positionToken: TokenE,
@@ -36,9 +29,8 @@ export async function closePosition(
   side: Side,
   price: BN
 ) {
-  let { perpetual_program } = await getPerpetualProgramAndProvider(wallet);
 
-  console.log("pool", pool);
+  let { perpetual_program } = await getPerpetualProgramAndProvider(wallet);
   console.log("side:", side);
 
   // TODO: need to take slippage as param , this is now for testing
@@ -52,50 +44,21 @@ export async function closePosition(
     price.toString()
   );
 
-  // let lpTokenAccount = await getAssociatedTokenAddress(
-  //   pool.lpTokenMint,
-  //   publicKey
-  // );
+  const poolTokenCustody = POOL_CONFIG.custodies.find(i => i.mintKey.toBase58()=== getTokenAddress(payToken));
+  if(!poolTokenCustody){
+    throw "poolTokenCustody  not found";
+  }
 
   let userCustodyTokenAccount = await getAssociatedTokenAddress(
-    pool.tokens[getTokenAddress(payToken)]!.mintAccount,
+    poolTokenCustody.mintKey,
     publicKey
   );
   console.log("tokens", payToken, positionToken);
 
-  // let positionAccount = findProgramAddressSync(
-  //   [
-  //     "position",
-  //     publicKey.toBuffer(),
-  //     pool.poolAddress.toBuffer(),
-  //     pool.tokens[getTokenAddress(payToken)]?.custodyAccount.toBuffer(),
-  //     side == 'Long' ? [1] : [2],
-  //   ],
-  //   perpetual_program.programId
-  // )[0];
-
-  //   console.log(
-  //     "left and right",
-  //     positionAccount.toString(),
-  //     "ALxjVHPdhi7LCoVc2CUbVvPFmnWWCcnNcNAQ4emPg2tz"
-  //   );
-
   let transaction = new Transaction();
 
   try {
-    // if (!(await checkIfAccountExists(lpTokenAccount, connection))) {
-    //   transaction = transaction.add(
-    //     createAssociatedTokenAccountInstruction(
-    //       publicKey,
-    //       lpTokenAccount,
-    //       publicKey,
-    //       pool.lpTokenMint
-    //     )
-    //   );
-    // }
-
     const positionAccount = new PublicKey(positionAccountAddress);
-
     console.log("position account", positionAccount.toString());
 
     let tx = await perpetual_program.methods
@@ -107,13 +70,11 @@ export async function closePosition(
         receivingAccount: userCustodyTokenAccount,
         transferAuthority: transferAuthorityAddress,
         perpetuals: perpetualsAddress,
-        pool: pool.poolAddress,
+        pool: POOL_CONFIG.poolAddress,
         position: positionAccount,
-        custody: pool.tokens[getTokenAddress(payToken)]?.custodyAccount,
-        custodyOracleAccount:
-          pool.tokens[getTokenAddress(payToken)]?.oracleAccount,
-        custodyTokenAccount:
-          pool.tokens[getTokenAddress(payToken)]?.tokenAccount,
+        custody: poolTokenCustody.custodyAccount,
+        custodyOracleAccount: poolTokenCustody.oracleAddress,
+        custodyTokenAccount: poolTokenCustody.tokenAccount,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
       .transaction();

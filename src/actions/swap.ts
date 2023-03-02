@@ -1,71 +1,59 @@
-import { Pool } from "@/lib/PoolAccount";
-import { Side, TradeSide } from "@/lib/PositionAccount";
 import { getTokenAddress, TokenE } from "@/utils/TokenUtils";
 import {
   getPerpetualProgramAndProvider,
   perpetualsAddress,
-  PERPETUALS_PROGRAM_ID,
+  POOL_CONFIG,
   transferAuthorityAddress,
 } from "@/utils/constants";
 import { manualSendTransaction } from "@/utils/manualTransaction";
 import { checkIfAccountExists } from "@/utils/retrieveData";
 import { BN, Wallet } from "@project-serum/anchor";
-import { findProgramAddressSync } from "@project-serum/anchor/dist/cjs/utils/pubkey";
 import {
   createAssociatedTokenAccountInstruction,
   getAssociatedTokenAddress,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import {
-  Connection,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  SystemProgram,
-  Transaction,
-} from "@solana/web3.js";
-
-
+import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 
 export async function swap(
-  pool: Pool,
   wallet: Wallet,
   publicKey: PublicKey,
-  signTransaction,
+  signTransaction: any,
   connection: Connection,
   receivingToken: TokenE,
   dispensingToken: TokenE,
   amountIn: BN,
-  minAmountOut: BN,
+  minAmountOut: BN
 ) {
+  console.log("inputs", Number(amountIn), Number(minAmountOut));
+  console.log("tokens", dispensingToken, receivingToken);
+
   let { perpetual_program } = await getPerpetualProgramAndProvider(wallet);
 
-  
-  console.log(
-    "inputs",
-    Number(amountIn),
-    Number(minAmountOut),
-    receivingToken,
-    dispensingToken
+  const receivingTokenCustody = POOL_CONFIG.custodies.find(
+    (i) => i.mintKey.toBase58() === getTokenAddress(receivingToken)
   );
-
-  console.log("pool", pool);
+  if (!receivingTokenCustody) {
+    throw "receivingTokenCustody  not found";
+  }
+  const dispensingTokenCustody = POOL_CONFIG.custodies.find(
+    (i) => i.mintKey.toBase58() === getTokenAddress(dispensingToken)
+  );
+  if (!dispensingTokenCustody) {
+    throw "dispensingTokenCustody  not found";
+  }
 
   let receivingTokenAccount = await getAssociatedTokenAddress(
-    pool.tokens[getTokenAddress(receivingToken)]!.mintAccount,
+    receivingTokenCustody.mintKey,
     publicKey
   );
 
   let userCustodyTokenAccount = await getAssociatedTokenAddress(
-    pool.tokens[getTokenAddress(dispensingToken)]!.mintAccount,
+    dispensingTokenCustody.mintKey,
     publicKey
   );
 
-  console.log("tokens", dispensingToken, receivingToken);
-
-
-
   let transaction = new Transaction();
-
   try {
     if (!(await checkIfAccountExists(receivingTokenAccount, connection))) {
       transaction = transaction.add(
@@ -73,31 +61,32 @@ export async function swap(
           publicKey,
           receivingTokenAccount,
           publicKey,
-          pool.tokens[getTokenAddress(receivingToken)]!.mintAccount
+          receivingTokenCustody.mintKey
         )
       );
     }
 
-
-    const params : any = {
-      amountIn, 
+    const params: any = {
+      amountIn,
       minAmountOut,
-     }
+    };
     let tx = await perpetual_program.methods
       .swap(params)
       .accounts({
         owner: publicKey,
         fundingAccount: userCustodyTokenAccount,
-        receivingAccount : receivingTokenAccount,
+        receivingAccount: receivingTokenAccount,
         transferAuthority: transferAuthorityAddress,
         perpetuals: perpetualsAddress,
-        pool: pool.poolAddress,
-        receivingCustody : pool.tokens[getTokenAddress(dispensingToken)]?.custodyAccount,
-        receivingCustodyOracleAccount : pool.tokens[getTokenAddress(dispensingToken)]?.oracleAccount,
-        receivingCustodyTokenAccount: pool.tokens[getTokenAddress(dispensingToken)]?.tokenAccount,
-        dispensingCustody: pool.tokens[getTokenAddress(receivingToken)]?.custodyAccount,
-        dispensingCustodyOracleAccount : pool.tokens[getTokenAddress(receivingToken)]?.oracleAccount,
-        dispensingCustodyTokenAccount : pool.tokens[getTokenAddress(receivingToken)]?.tokenAccount,
+        pool: POOL_CONFIG.poolAddress,
+        
+        receivingCustody: dispensingTokenCustody.custodyAccount,
+        receivingCustodyOracleAccount: dispensingTokenCustody.oracleAddress,
+        receivingCustodyTokenAccount: dispensingTokenCustody.tokenAccount,
+
+        dispensingCustody: receivingTokenCustody.custodyAccount,
+        dispensingCustodyOracleAccount: receivingTokenCustody.oracleAddress,
+        dispensingCustodyTokenAccount: receivingTokenCustody.tokenAccount,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
       .transaction();
