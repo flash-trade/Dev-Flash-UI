@@ -14,15 +14,12 @@ export default function PoolPage() {
 
   const { pool } = usePoolData();
 
-  if (!pool) {
-    return <p className="text-white">Loading...</p>;
-  }
 
   return (
     <PoolLayout className="text-white">
       <div>
         <PoolBackButton className="mb-6" />
-        <TitleHeader pool={pool!} iconClassName="w-10 h-10" className="mb-8" />
+        <TitleHeader iconClassName="w-10 h-10" className="mb-8" />
       </div>
       <div className="flex w-full flex-col">
         <PoolStats pool={pool!} className="mb-8" />

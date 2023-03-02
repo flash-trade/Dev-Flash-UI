@@ -6,6 +6,9 @@ import { useEffect } from "react";
 import { twMerge } from "tailwind-merge";
 import { checkIfAccountExists } from "@/utils/retrieveData";
 import { useUserData } from "@/hooks/useUserData";
+import { POOL_CONFIG } from "@/utils/constants";
+import { usePoolData } from "@/hooks/usePoolData";
+import { BN } from "@project-serum/anchor";
 
 interface Props {
   pool: Pool;
@@ -15,16 +18,16 @@ interface Props {
 export default function PoolStats(props: Props) {
   const stats = useDailyPriceStats();
 
-  const { wallet, publicKey, signTransaction } = useWallet();
-  const { connection } = useConnection();
+  const poolData = usePoolData();
+
 
   const { userLpTokens } = useUserData();
 
-  function getLiquidityBalance(pool: PoolAccount): number {
-    let userLpBalance = userLpTokens[pool.poolAddress.toString()];
-    let lpSupply = pool.lpSupply / 10 ** pool.lpDecimals;
+  function getLiquidityBalance(): number {
+    let userLpBalance = userLpTokens[POOL_CONFIG.poolAddress.toString()] ?? 0;
+    let lpSupply = poolData.lpStats.lpTokenSupply.div(new BN(10 ** POOL_CONFIG.lpDecimals));
 
-    let userLiquidity = (userLpBalance / lpSupply) * pool.getLiquidities(stats);
+    let userLiquidity = (userLpBalance / lpSupply.toNumber()) * poolData.lpStats.totalPoolValue.toNumber();
 
     if (Number.isNaN(userLiquidity)) {
       return 0;
@@ -33,11 +36,12 @@ export default function PoolStats(props: Props) {
     return userLiquidity;
   }
 
-  function getLiquidityShare(pool: PoolAccount): number {
-    let userLpBalance = userLpTokens[pool.poolAddress.toString()];
-    let lpSupply = pool.lpSupply / 10 ** pool.lpDecimals;
+  function getLiquidityShare(): number {
+    let userLpBalance = userLpTokens[POOL_CONFIG.poolAddress.toString()] ?? 0;
+    let lpSupply = poolData.lpStats.lpTokenSupply.div(new BN(10 ** POOL_CONFIG.lpDecimals));
 
-    let userShare = (userLpBalance / lpSupply) * 100;
+
+    let userShare = (userLpBalance / lpSupply.toNumber()) * 100;
 
     if (Number.isNaN(userShare)) {
       return 0;
@@ -61,36 +65,36 @@ export default function PoolStats(props: Props) {
         {[
           {
             label: "Liquidity",
-            value: `$${props.pool.getLiquidities(stats)}`,
+            value: `$${poolData.lpStats.totalPoolValue.toString()}`,
           },
           {
             label: "Volume",
-            value: `$${props.pool.getTradeVolumes()}`,
+            value: `$${poolData.poolStats.totalVolume.toString()}`,
           },
           {
             label: "OI Long",
             value: (
               <>
-                {`$${props.pool.getOiLong()} `}
+                {`$${poolData.oiLong.toString()} `}
                 <span className="text-zinc-500"> </span>
               </>
             ),
           },
           {
             label: "OI Short",
-            value: `$${props.pool.getOiShort()}`,
+            value: `$${poolData.oiShort.toString()}`,
           },
           {
             label: "Fees",
-            value: `$${props.pool.getFees()}`,
+            value: `$${poolData.poolStats.totalFees.toString()}`,
           },
           {
             label: "Your Liquidity",
-            value: `$${getLiquidityBalance(props.pool).toFixed(2)}`,
+            value: `$${getLiquidityBalance().toFixed(2)}`,
           },
           {
             label: "Your Share",
-            value: `${getLiquidityShare(props.pool).toFixed(2)}%`,
+            value: `${getLiquidityShare().toFixed(2)}%`,
           },
         ].map(({ label, value }, i) => (
           <div
