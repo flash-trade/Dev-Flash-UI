@@ -1,4 +1,3 @@
-import { AllStats } from "@/hooks/useDailyPriceStats";
 import { PoolConfig } from "@/utils/PoolConfig";
 import { BN } from "@project-serum/anchor";
 import {  Mint } from "@solana/spl-token";
@@ -32,8 +31,33 @@ export class PoolAccount {
     this.lpTokenInfo = lpTokenInfo
   }
 
-  getLPtokenSupply(){
-     return this.lpTokenInfo.supply;
+  getLpStats(price: BN = new BN(0)){
+
+     let stableCoinAmount = new BN(0);
+     let totalPoolValueUsd = new BN(0);
+     let aum = this.poolData.aumUsd;
+
+    for (const custody of this.poolConfig.custodies) {
+      const custodyData = this.custodies.find(t => t.mint.toBase58() === custody.mintKey.toBase58())
+      if(custodyData){
+        if (custodyData.isStable) {  
+          stableCoinAmount.add(custodyData.assets.owned)
+        }
+        const custodyValue = price.mul(custodyData.assets.collateral)
+        totalPoolValueUsd.add(custodyValue)
+      }
+    }
+    const lpPrice = price.mul(new BN(10));// TODO: calculate ?
+    
+     return  {
+       lpTokenSupply : new BN(this.lpTokenInfo.supply.toString()),
+       decimals : this.poolConfig.lpDecimals,
+       totalPoolValue : totalPoolValueUsd,
+       price : lpPrice,
+       stableCoinPercentage : stableCoinAmount.mul(new BN(4)).div(aum),
+       marketCap : lpPrice.mul(new BN(this.lpTokenInfo.supply.toString())),
+      // totalStaked : BN,
+     }
   }
 
   getOiLongUI() {
@@ -41,7 +65,7 @@ export class PoolAccount {
      this.custodies.forEach(i => {
       totalAmount =  totalAmount.add(i.tradeStats.oiLongUsd); 
      })
-    return (totalAmount.toNumber() / 10 ** 6).toFixed(2);
+    return totalAmount;
   }
 
   getOiShortUI() {
@@ -49,12 +73,12 @@ export class PoolAccount {
     this.custodies.forEach(i => {
      totalAmount =  totalAmount.add(i.tradeStats.oiShortUsd); 
      })
-   return (totalAmount.toNumber() / 10 ** 6).toFixed(2);
+   return totalAmount;
   }
 
   // handle decimal and this should accept a list of prices probs map or object
   getCustodyDetails(price: BN = new BN(0)) {
-    const custodyWeights = [];
+    const custodyDetails = [];
     for (const custody of this.poolConfig.custodies) {
       const token = this.poolData.tokens.find(t => t.custody.toBase58() === custody.custodyAccount.toBase58());
       // const custodyData = this.custodies.find(f => f.)
@@ -62,7 +86,7 @@ export class PoolAccount {
       const custodyData = this.custodies.find(t => t.mint.toBase58() === custody.mintKey.toBase58())
 
       if(custodyData && token) {
-        custodyWeights.push({
+        custodyDetails.push({
           symbol: custody.symbol,
           price: price,
           targetWeight: token.targetRatio,
@@ -71,6 +95,7 @@ export class PoolAccount {
         })
       }
     }
+    return custodyDetails;
   }
 
   getPoolStats() {

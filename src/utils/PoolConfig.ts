@@ -8,6 +8,8 @@ export class PoolConfig {
     public poolName: string,
     public poolAddress: PublicKey,
     public lpTokenMint: PublicKey,
+    public lpDecimals: number,
+
     // public perpMarketAccountKey: string,
     // public multisigAccountKey: string,
     // public transferAuthorityAccountKey: string,
@@ -85,6 +87,7 @@ export class PoolConfig {
       poolConfig.poolName,
       new PublicKey(poolConfig.poolAddress),
       new PublicKey(poolConfig.lpTokenMint),
+      poolConfig.lpDecimals,
       tokens,
       custodies,
     );
@@ -118,6 +121,7 @@ export class PoolConfig {
       poolConfig.poolName,
       new PublicKey(poolConfig.poolAddress),
       new PublicKey(poolConfig.lpTokenMint),
+      poolConfig.lpDecimals,
       tokens,
       custodies,
     );

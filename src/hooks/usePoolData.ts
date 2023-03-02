@@ -12,17 +12,58 @@ import { Pool } from "../types";
 
 
 export interface ViewPoolData {
-  pool : Pool,
-  // Display Data
-  liquidity : BN,
-  volume : BN,
-  fees : BN,
-  OILong : BN,
-  OIShort : BN,
-  // 
-  lpTokenSupply : BN,
-  
+  oiLong : BN,
+  oiShort : BN,
+  poolStats : {
+    totalVolume : BN,
+    totalFees : BN,
+    currentLongPositionsUsd : BN,
+    currentShortPositionsUsd : BN,
+  },
+  custodyDetails : {
+    symbol: string,
+    price: BN,
+    targetWeight: BN,
+    currentWeight: BN,
+    utilization: BN,
+  }[],
+  lpStats : {
+    lpTokenSupply : BN,
+    decimals : number,
+    totalPoolValue : BN,
+    price : BN,
+    stableCoinPercentage : BN,
+    marketCap : BN,
+    // totalStaked : BN,
+  },
 }
+const ZERO_BN = new BN(0);
+const defaultData : ViewPoolData = {
+  oiLong : ZERO_BN,
+  oiShort : ZERO_BN,
+  poolStats : {
+    totalVolume : ZERO_BN,
+    totalFees : ZERO_BN,
+    currentLongPositionsUsd : ZERO_BN,
+    currentShortPositionsUsd : ZERO_BN,
+  },
+  custodyDetails : [{
+    symbol: '',
+    price: ZERO_BN,
+    targetWeight: ZERO_BN,
+    currentWeight: ZERO_BN,
+    utilization: ZERO_BN,
+  }],
+  lpStats : {
+    lpTokenSupply : ZERO_BN,
+    decimals : 0,
+    totalPoolValue : ZERO_BN,
+    price : ZERO_BN,
+    stableCoinPercentage : ZERO_BN,
+    marketCap : ZERO_BN,
+    // totalStaked : BN,
+  },
+} 
 
 export function usePoolData() {
 
@@ -32,29 +73,21 @@ export function usePoolData() {
   const poolData = useGlobalStore(state => state.poolData);
   const lpMintData = useGlobalStore(state => state.lpMintData);
 
-  let poolInfos = {};
-
-  async function getPoolData() {
-    let { perpetual_program, provider } = await getPerpetualProgramAndProvider();
+   const getPoolData =  () : ViewPoolData => {
 
     const poolConfig = PoolConfig.fromIdsByName(DEFAULT_POOL, CLUSTER);
 
-    if(!poolData || !lpMintData) return
+    if(!poolData || !lpMintData) return defaultData;
 
     const pool = new PoolAccount(poolConfig, poolData, lpMintData, Array.from(custodies.values()))
     return {
       oiLong: pool.getOiLongUI(),
       oiShort: pool.getOiShortUI(),
-      // oiShort: pool.getTradeVolumes()
-      // oiShort: pool.getTradeVolumes()
-
+      poolStats: pool.getPoolStats(),
+      custodyDetails: pool.getCustodyDetails(new BN(1)),
+      lpStats : pool.getLpStats(new BN(1))
     }
   }
-
-  useEffect(() => {
-    
-    
-  }, [custodies]);
 
 
   useEffect(() => {
@@ -66,13 +99,12 @@ export function usePoolData() {
 
   return useMemo(() => {
 
-    if (!custodies) {
-      return getPoolData();
+    if (custodies) {
+      return  getPoolData();
     } else {
-      {}
+      return defaultData;
     }
 
-    return { pool };
   }, [custodies, timer])
 
 }
