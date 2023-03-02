@@ -1,15 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { CLUSTER, DEFAULT_POOL, getPerpetualProgramAndProvider } from "@/utils/constants";
-import { getTokenAddress, tokenAddressToTokenE } from "@/utils/TokenUtils";
-import { PublicKey } from "@solana/web3.js";
-import { findProgramAddressSync } from "@project-serum/anchor/dist/cjs/utils/pubkey";
+import { CLUSTER, DEFAULT_POOL } from "@/utils/constants";
 import {  PoolAccount } from "@/lib/PoolAccount";
-import { getMint } from "@solana/spl-token";
 import { useGlobalStore } from "@/stores/store";
 import { PoolConfig } from "@/utils/PoolConfig";
 import { BN } from "@project-serum/anchor";
 import { Pool } from "../types";
 import { CustodyAccount } from "@/lib/CustodyAccount";
+import { PublicKey } from "@solana/web3.js";
 
 
 export interface ViewPoolData {
