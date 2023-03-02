@@ -2,7 +2,7 @@ import { useGlobalStore } from '@/stores/store'
 import { Custody, Pool } from '@/types/index'
 import { CLUSTER, DEFAULT_POOL, getPerpetualProgramAndProvider } from '@/utils/constants'
 import { PoolConfig } from '@/utils/PoolConfig'
-import { getMint, Mint, MintLayout } from '@solana/spl-token'
+import { getMint, MintLayout } from '@solana/spl-token'
 import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react'
 import { PublicKey } from '@solana/web3.js'
 import React, { useEffect } from 'react'
@@ -46,7 +46,7 @@ export const useHydrateStore = () => {
     const subIds: number[] = [];
     (async () => {
 
-      let { perpetual_program } = await getPerpetualProgramAndProvider();
+      // let { perpetual_program } = await getPerpetualProgramAndProvider();
       const accountInfo = await connection.getAccountInfo(pool.lpTokenMint)
       if (accountInfo) {
        
