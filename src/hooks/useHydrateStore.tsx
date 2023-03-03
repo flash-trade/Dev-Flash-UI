@@ -2,7 +2,7 @@ import { useGlobalStore } from '@/stores/store'
 import { Custody, Pool } from '@/types/index'
 import { CLUSTER, DEFAULT_POOL, getPerpetualProgramAndProvider } from '@/utils/constants'
 import { PoolConfig } from '@/utils/PoolConfig'
-import { AnchorProvider } from '@project-serum/anchor'
+import { AnchorProvider, BN } from '@project-serum/anchor'
 import { getMint, MintLayout } from '@solana/spl-token'
 import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react'
 import { PublicKey } from '@solana/web3.js'
@@ -19,10 +19,12 @@ export const useHydrateStore = () => {
 
   useEffect(() => {
     (async () => {
-      console.log("running >>>> ")
+      console.log("running >>>> , : ", wallet)
 
-      if( !wallet ) return
+
       const pool = PoolConfig.fromIdsByName(DEFAULT_POOL, CLUSTER);
+      console.log(">>>>> ");
+      if(!wallet) return;
 
       const provider = new AnchorProvider(connection, wallet, {
         commitment: "processed",
@@ -35,13 +37,15 @@ export const useHydrateStore = () => {
         const ok = PoolConfig.getCustodyConfig(pool.custodies[0]?.custodyAccount)
         console.log("ok ::: ", ok);
         if (ok) {
-          await viewHelper.getOraclePrice(pool.poolAddress, true, ok.custodyAccount)
+          const transaction = await viewHelper.getOraclePrice(pool.poolAddress, true, ok.custodyAccount)
+          // const transactio2 = await viewHelper.getEntryPriceAndFee(new BN(100000000), new BN(10000000), 'long', pool.poolAddress, ok.custodyAccount);
+          
+          console.log('transaction ::: ', transaction)
         }
       }
      
      
     })()
-  
   }, [connection, wallet])
   
 
