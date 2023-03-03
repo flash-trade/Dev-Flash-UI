@@ -120,7 +120,7 @@ export function TradePosition(props: Props) {
             </div>
           )}
         </div>
-        <TokenSelector
+        {/* <TokenSelector
           className="mt-2"
           amount={payAmount}
           token={payToken}
@@ -134,11 +134,11 @@ export function TradePosition(props: Props) {
           tokenList={Object.keys(pool.tokens).map((token) => {
             return tokenAddressToTokenE(token);
           })}
-        />
+        /> */}
         <div className="mt-4 text-sm font-medium text-white">
           Your {props.side}
         </div>
-        <TokenSelector
+        {/* <TokenSelector
           className="mt-2"
           amount={positionAmount}
           token={positionToken}
@@ -154,7 +154,7 @@ export function TradePosition(props: Props) {
           tokenList={Object.keys(pool.tokens).map((token) => {
             return tokenAddressToTokenE(token);
           })}
-        />
+        /> */}
         <div className="mt-4 text-xs text-zinc-400">Pool</div>
         {/* <PoolSelector
           className="mt-2"

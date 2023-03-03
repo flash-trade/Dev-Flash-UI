@@ -15,8 +15,8 @@ interface StoreState {
 
   poolData?: Pool;
   setPoolData: (pool: Pool) => void
-  lpMintData?: Mint;
-  setLpMintData: (mint: Mint) => void 
+  lpMintData?: any;
+  setLpMintData: (mint: any) => void 
 
   custodies: Map<string, Custody>;
   setCustodies: (custodies: Map<string, Custody>) => void;

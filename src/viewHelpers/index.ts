@@ -1,13 +1,12 @@
-import { DefaultWallet, PERPETUALS_PROGRAM_ID, perpsUser } from "@/utils/constants";
-import { E2EWallet } from "@/utils/DummyWallet";
-import { AnchorProvider, BN, Program, Provider } from "@project-serum/anchor";
+import { PERPETUALS_PROGRAM_ID } from "@/utils/constants";
+import { AnchorProvider, BN, Program } from "@project-serum/anchor";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { IDL as PERPETUALS_IDL, Perpetuals } from "@/target/types/perpetuals";
-import { Custody } from "../types";
+import { PoolConfig } from "@/utils/PoolConfig";
 
 export type PositionSide = "long" | "short";
 
-class ViewHelper {
+export class ViewHelper {
 
   program: Program<Perpetuals>;
   connection: Connection
@@ -24,22 +23,20 @@ class ViewHelper {
   }
 
   getEntryPriceAndFee = async (
-    tokenMint: PublicKey,
     collateral: BN,
     size: BN,
     side: PositionSide,
     poolKey: PublicKey,
     custodyKey: PublicKey,
-    custodyOracleAccount: PublicKey
-) => {
-      let program = new Program(
-        PERPETUALS_IDL,
-        PERPETUALS_PROGRAM_ID,
-        this.provider
-      );
+  ) => {
+    let program = new Program(
+      PERPETUALS_IDL,
+      PERPETUALS_PROGRAM_ID,
+      this.provider
+    );
 
     return await program.methods
-       // @ts-ignore
+      // @ts-ignore
       .getEntryPriceAndFee({
         collateral,
         size,
@@ -50,16 +47,41 @@ class ViewHelper {
         perpetuals: PERPETUALS_PROGRAM_ID,
         pool: poolKey,
         custody: custodyKey,
-        custodyOracleAccount: await getCustodyOracleAccountKey(
-          poolName,
-          tokenMint
-        ),
+        custodyOracleAccount: PoolConfig.getCustodyConfig(
+          custodyKey
+        )?.oracleAddress,
       })
       .view()
       .catch((err) => {
         console.error(err);
         throw err;
       });
-}
+  }
+
+  getOraclePrice = async (
+    poolKey: PublicKey,
+    ema: boolean,
+    custodyKey: PublicKey,
+  ) => {
+    console.log(" >> here >>> ");
+    return await this.program.methods
+      .getOraclePrice({
+        ema,
+      })
+      .accounts({
+        signer: this.provider.wallet.publicKey,
+        perpetuals: PERPETUALS_PROGRAM_ID,
+        pool: poolKey,
+        custody: custodyKey,
+        custodyOracleAccount:  PoolConfig.getCustodyConfig(
+          custodyKey
+        )?.oracleAddress,
+      })
+      .view()
+      .catch((err) => {
+        console.error(err);
+        throw err;
+      });
+  };
 
 } 

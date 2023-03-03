@@ -2,18 +2,48 @@ import { useGlobalStore } from '@/stores/store'
 import { Custody, Pool } from '@/types/index'
 import { CLUSTER, DEFAULT_POOL, getPerpetualProgramAndProvider } from '@/utils/constants'
 import { PoolConfig } from '@/utils/PoolConfig'
+import { AnchorProvider } from '@project-serum/anchor'
 import { getMint, MintLayout } from '@solana/spl-token'
 import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react'
 import { PublicKey } from '@solana/web3.js'
 import React, { useEffect } from 'react'
+import { ViewHelper } from '../viewHelpers'
 
 
 export const useHydrateStore = () => {
   const { connection } = useConnection();
-  // const wallet = useAnchorWallet();
+  const wallet = useAnchorWallet();
   const addCustody = useGlobalStore(state => state.addCustody);
   const setPoolData = useGlobalStore(state => state.setPoolData);
   const setLpMintData = useGlobalStore(state => state.setLpMintData);
+
+  useEffect(() => {
+    (async () => {
+      console.log("running >>>> ")
+
+      if( !wallet ) return
+      const pool = PoolConfig.fromIdsByName(DEFAULT_POOL, CLUSTER);
+
+      const provider = new AnchorProvider(connection, wallet, {
+        commitment: "processed",
+        skipPreflight: true,
+      });
+
+      const viewHelper = new ViewHelper(connection, provider);
+      console.log('pool.custodies[0] :>> ', pool.custodies[0]);
+      if (pool.custodies[0]?.custodyAccount) {
+        const ok = PoolConfig.getCustodyConfig(pool.custodies[0]?.custodyAccount)
+        console.log("ok ::: ", ok);
+        if (ok) {
+          await viewHelper.getOraclePrice(pool.poolAddress, true, ok.custodyAccount)
+        }
+      }
+     
+     
+    })()
+  
+  }, [connection, wallet])
+  
 
   useEffect(() => {
     const pool = PoolConfig.fromIdsByName(DEFAULT_POOL, CLUSTER);

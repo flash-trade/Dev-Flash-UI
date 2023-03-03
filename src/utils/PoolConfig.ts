@@ -1,5 +1,6 @@
+import { Address } from '@project-serum/anchor';
 import { Cluster, PublicKey } from '@solana/web3.js';
-import { CLUSTER } from './constants';
+import { CLUSTER, DEFAULT_POOL } from './constants';
 import poolConfigs from './PoolConfig.json';
 
 export class PoolConfig {
@@ -62,6 +63,11 @@ export class PoolConfig {
 
   static getAllPoolConfigs(): PoolConfig[] {
     return poolConfigs.pools.map(p => this.fromIdsByName(p.poolName, CLUSTER))
+  }
+
+  static getCustodyConfig(custodyAccountPk: Address) {
+    console.log('custodyAccountPk :>> ', custodyAccountPk.toString());
+    return this.fromIdsByName(DEFAULT_POOL, CLUSTER).custodies.find(f => f.custodyAccount.toBase58() === custodyAccountPk.toString())
   }
 
   static fromIdsByName(name: string, cluster: Cluster): PoolConfig {
