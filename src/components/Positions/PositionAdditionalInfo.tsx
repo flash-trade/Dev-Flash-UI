@@ -41,9 +41,7 @@ export function PositionAdditionalInfo(props: Props) {
 
   async function handleCloseTrade() {
     console.log("in close trade");
-    let pool = pools[props.position.poolAddress.toString()];
     await closePosition(
-      pool,
       wallet,
       publicKey,
       signTransaction,

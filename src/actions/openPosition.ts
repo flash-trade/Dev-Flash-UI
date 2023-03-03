@@ -5,6 +5,7 @@ import {
   getPerpetualProgramAndProvider,
   perpetualsAddress,
   PERPETUALS_PROGRAM_ID,
+  POOL_CONFIG,
   transferAuthorityAddress,
 } from "@/utils/constants";
 import { manualSendTransaction } from "@/utils/manualTransaction";
@@ -28,10 +29,9 @@ import {
 } from "@solana/web3.js";
 
 export async function openPosition(
-  pool: PoolConfig,
   wallet: Wallet,
   publicKey: PublicKey,
-  signTransaction,
+  signTransaction : any,
   connection: Connection,
   payToken: TokenE,
   positionToken: TokenE,
@@ -58,20 +58,8 @@ export async function openPosition(
     side.toString()
   );
 
-  console.log("pool", pool);
-
-  // let lpTokenAccount = await getAssociatedTokenAddress(
-  //   pool.lpTokenMint,
-  //   publicKey
-  // );
-
-  const poolToken = pool.tokens.find(i => i.mintKey.toBase58()=== getTokenAddress(payToken));
-  if(!poolToken){
-    throw "Pool token not found";
-  }
-
-  const poolTokenCustody = pool.custodies.find(i => i.mintKey.toBase58()=== getTokenAddress(payToken));
-  if(!poolTokenCustody){
+  const payTokenCustody = POOL_CONFIG.custodies.find(i => i.mintKey.toBase58()=== getTokenAddress(payToken));
+  if(!payTokenCustody){
     throw "poolTokenCustody  not found";
   }
 
@@ -90,18 +78,14 @@ export async function openPosition(
     [
       Buffer.from("position") ,
       publicKey.toBuffer(),
-      pool.poolAddress.toBuffer(),
-      poolTokenCustody.custodyAccount.toBuffer(),
+      POOL_CONFIG.poolAddress.toBuffer(),
+      payTokenCustody.custodyAccount.toBuffer(),
       side.toString() == "Long" ?  Buffer.from([1]) :  Buffer.from([2]),
     ],
     perpetual_program.programId
   )[0];
 
-  // console.log(
-  //   "left and right",
-  //   positionAccount.toString(),
-  //   "ALxjVHPdhi7LCoVc2CUbVvPFmnWWCcnNcNAQ4emPg2tz"
-  // );
+ 
 
   let transaction = new Transaction();
 
@@ -159,13 +143,13 @@ export async function openPosition(
         fundingAccount: userCustodyTokenAccount,
         transferAuthority: transferAuthorityAddress,
         perpetuals: perpetualsAddress,
-        pool: pool.poolAddress,
+        pool: POOL_CONFIG.poolAddress,
         position: positionAccount,
-        custody: poolTokenCustody.custodyAccount,
+        custody: payTokenCustody.custodyAccount,
         custodyOracleAccount:
-        poolTokenCustody.oracleAddress,
+        payTokenCustody.oracleAddress,
         custodyTokenAccount:
-        poolTokenCustody.tokenAccount,
+        payTokenCustody.tokenAccount,
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
       })

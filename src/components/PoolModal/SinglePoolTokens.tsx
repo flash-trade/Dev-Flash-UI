@@ -5,6 +5,8 @@ import { cloneElement } from "react";
 import { twMerge } from "tailwind-merge";
 import { ACCOUNT_URL } from "@/utils/TransactionHandlers";
 import NewTab from "@carbon/icons-react/lib/NewTab";
+import { POOL_CONFIG } from "@/utils/constants";
+import { usePoolData } from "@/hooks/usePoolData";
 
 interface Props {
   className?: string;
@@ -28,6 +30,7 @@ function TableHeader() {
 
 export default function SinglePoolTokens(props: Props) {
   const stats = useDailyPriceStats();
+  // const poolData = usePoolData();
 
   if (Object.keys(stats).length === 0) {
     return <>Loading stats</>;
@@ -49,11 +52,11 @@ export default function SinglePoolTokens(props: Props) {
               </tr>
             </thead>
             <tbody className={twMerge("text-xs")}>
-              {Object.entries(props.pool.tokens).map(([tokenMint, custody]) => {
-                const token = tokenAddressToTokenE(tokenMint);
+              {POOL_CONFIG.custodies.map((custody) => {
+                const token = tokenAddressToTokenE(custody.mintKey.toBase58());
                 const icon = getTokenEIcon(token);
                 return (
-                  <tr key={tokenMint} className="border-t border-zinc-700">
+                  <tr key={custody.mintKey.toBase58()} className="border-t border-zinc-700">
                     <td className="py-4">
                       <div className="flex flex-row items-center space-x-1">
                         {cloneElement(icon, {
@@ -61,7 +64,7 @@ export default function SinglePoolTokens(props: Props) {
                         })}
                         <div className="flex flex-col">
                           <p className="font-medium">
-                            {tokenAddressToTokenE(tokenMint)}
+                            {tokenAddressToTokenE(custody.mintKey.toBase58())}
                           </p>
                           <p className={twMerge("text-xs", "text-zinc-500")}>
                             {getTokenELabel(token)}
@@ -71,7 +74,7 @@ export default function SinglePoolTokens(props: Props) {
                           target="_blank"
                           rel="noreferrer"
                           href={`${ACCOUNT_URL(
-                            custody.mintAccount.toString()
+                            custody.custodyAccount.toBase58()
                           )}`}
                         >
                           <NewTab />
@@ -80,17 +83,17 @@ export default function SinglePoolTokens(props: Props) {
                     </td>
                     <td>%</td>
                     <td>
-                      {(
+                      {/* {(
                         stats[token].currentPrice *
                         (Number(custody.amount) / 10 ** custody.decimals)
-                      ).toFixed(2)}
+                      ).toFixed(2)} */}
                     </td>
                     <td>{stats[token].currentPrice.toFixed(2)}</td>
                     <td>
-                      {(
+                      {/* {(
                         Number(custody.amount) /
                         10 ** custody.decimals
-                      ).toFixed(2)}
+                      ).toFixed(2)} */}
                     </td>
                     <td>% / %</td>
                     <td>%</td>

@@ -8,6 +8,7 @@ import { findProgramAddressSync } from "@project-serum/anchor/dist/cjs/utils/pub
 import NodeWallet from "@project-serum/anchor/dist/cjs/nodewallet";
 import { Wallet } from "@project-serum/anchor/dist/cjs/provider";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
+import { PoolConfig } from "./PoolConfig";
 
 export const PERPETUALS_PROGRAM_ID = new PublicKey(
   PerpetualsJson["metadata"]["address"]
@@ -15,6 +16,9 @@ export const PERPETUALS_PROGRAM_ID = new PublicKey(
 
 export const CLUSTER: Cluster = process.env.NEXT_CLUSTER as Cluster || 'devnet';
 export const DEFAULT_POOL: string = process.env.NEXT_DEFAULT_POOL || 'TestPool1';
+
+export const POOL_CONFIG = PoolConfig.fromIdsByName(DEFAULT_POOL, CLUSTER);
+
 
 export class DefaultWallet implements Wallet {
   constructor(readonly payer: Keypair) {}

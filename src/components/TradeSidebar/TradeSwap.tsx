@@ -7,11 +7,9 @@ import { TokenSelector } from "../TokenSelector";
 import { SolidButton } from "../SolidButton";
 import { TradeSwapDetails } from "./TradeSwapDetails";
 import { swap } from "src/actions/swap";
-import { usePoolData } from "@/hooks/usePoolData";
-import { Pool } from "@/lib/PoolAccount";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { BN } from "@project-serum/anchor";
-import { useRouter } from "next/router";
+
 
 interface Props {
   className?: string;
@@ -25,11 +23,9 @@ export function TradeSwap(props: Props) {
 
   const allPriceStats = useDailyPriceStats();
 
-  const { pools } = usePoolData();
-  const { connection } = useConnection();
-  const router = useRouter();
 
-  const [pool, setPool] = useState<Pool | null>(null);
+  const { connection } = useConnection();
+
 
   const { publicKey, signTransaction, wallet } = useWallet();
 
@@ -54,18 +50,7 @@ export function TradeSwap(props: Props) {
   //   setPayAmount(payAmount);
   // }, [receiveAmount, payToken, receiveToken, allPriceStats]);
 
-  // TODO: add pool selection for swap if need , for now fixing it to POOL1
-  useEffect(() => {
-    if (pools === undefined || pools === null) {
-      return;
-    } else {
-      const pool1 = Object.values(pools).filter(
-        (i) => i.poolName == "TestPool1"
-      );
-      console.log("selected pool:", pool1);
-      setPool(pool1[0]);
-    }
-  }, [pools]);
+
 
   async function handleSwap() {
     // TODO: need to take slippage as param , this is now for testing
@@ -74,7 +59,6 @@ export function TradeSwap(props: Props) {
       .div(new BN(100));
 
     await swap(
-      pool,
       wallet,
       publicKey,
       signTransaction,
@@ -85,7 +69,6 @@ export function TradeSwap(props: Props) {
       newPrice
     );
 
-    router.reload(window.location.pathname);
   }
 
   return (

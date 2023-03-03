@@ -23,6 +23,7 @@ import { fetchTokenBalance } from "@/utils/retrieveData";
 import { usePositions } from "@/hooks/usePositions";
 import { PoolConfig } from "@/utils/PoolConfig";
 import { useGlobalStore } from "@/stores/store";
+import { POOL_CONFIG } from "@/utils/constants";
 
 interface Props {
   className?: string;
@@ -62,8 +63,7 @@ export function TradePosition(props: Props) {
 
   async function handleTrade() {
     await openPosition(
-      pool,
-      wallet,
+      wallet!,
       publicKey,
       signTransaction,
       connection,
@@ -131,8 +131,8 @@ export function TradePosition(props: Props) {
             setLastChanged(Input.Pay);
           }}
           onSelectToken={setPayToken}
-          tokenList={Object.keys(pool.tokens).map((token) => {
-            return tokenAddressToTokenE(token);
+          tokenList={POOL_CONFIG.tokens.map((token) => {
+            return tokenAddressToTokenE(token.mintKey.toBase58());
           })}
         /> */}
         <div className="mt-4 text-sm font-medium text-white">
@@ -151,8 +151,8 @@ export function TradePosition(props: Props) {
             setPositionToken(token);
             router.push("/trade/" + token + "-USD");
           }}
-          tokenList={Object.keys(pool.tokens).map((token) => {
-            return tokenAddressToTokenE(token);
+          tokenList={POOL_CONFIG.tokens.map((token) => {
+            return tokenAddressToTokenE(token.mintKey.toBase58());
           })}
         /> */}
         <div className="mt-4 text-xs text-zinc-400">Pool</div>
