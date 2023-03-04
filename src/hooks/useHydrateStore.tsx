@@ -18,38 +18,6 @@ export const useHydrateStore = () => {
   const setLpMintData = useGlobalStore(state => state.setLpMintData);
 
   useEffect(() => {
-    (async () => {
-      console.log("running >>>> , : ", wallet)
-
-
-      const pool = PoolConfig.fromIdsByName(DEFAULT_POOL, CLUSTER);
-      console.log(">>>>> ");
-      if(!wallet) return;
-
-      const provider = new AnchorProvider(connection, wallet, {
-        commitment: "processed",
-        skipPreflight: true,
-      });
-
-      const viewHelper = new ViewHelper(connection, provider);
-      console.log('pool.custodies[0] :>> ', pool.custodies[0]);
-      if (pool.custodies[0]?.custodyAccount) {
-        const ok = PoolConfig.getCustodyConfig(pool.custodies[0]?.custodyAccount)
-        console.log("ok ::: ", ok);
-        if (ok) {
-          const transaction = await viewHelper.getOraclePrice(pool.poolAddress, true, ok.custodyAccount)
-          // const transactio2 = await viewHelper.getEntryPriceAndFee(new BN(100000000), new BN(10000000), 'long', pool.poolAddress, ok.custodyAccount);
-          
-          console.log('transaction ::: ', transaction)
-        }
-      }
-     
-     
-    })()
-  }, [connection, wallet])
-  
-
-  useEffect(() => {
     const pool = PoolConfig.fromIdsByName(DEFAULT_POOL, CLUSTER);
     const subIds: number[] = [];
     (async () => {
