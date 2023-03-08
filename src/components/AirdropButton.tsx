@@ -1,5 +1,5 @@
 import { getTokenELabel, tokenAddressToTokenE } from "@/utils/TokenUtils";
-import { perpsUser } from "@/utils/constants";
+import { DEFAULT_PERPS_USER } from "@/utils/constants";
 import { manualSendTransaction } from "@/utils/manualTransaction";
 import { checkIfAccountExists } from "@/utils/retrieveData";
 import {
@@ -47,7 +47,7 @@ export default function AirdropButton(props: Props) {
         createMintToCheckedInstruction(
           mint, // mint
           associatedAccount, // ata
-          perpsUser.publicKey, // payer
+          DEFAULT_PERPS_USER.publicKey, // payer
           100 * 10 ** 9, // amount
           9 // decimals
         )
@@ -58,7 +58,7 @@ export default function AirdropButton(props: Props) {
         publicKey,
         connection,
         signTransaction,
-        perpsUser
+        DEFAULT_PERPS_USER
       );
     }
 

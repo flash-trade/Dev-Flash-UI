@@ -69,7 +69,7 @@ export class PoolConfig {
   }
 
   static getCustodyConfig(custodyAccountPk: Address) {
-    console.log('custodyAccountPk :>> ', custodyAccountPk.toString());
+    // console.log('custodyAccountPk :>> ', custodyAccountPk.toString());
     return this.fromIdsByName(DEFAULT_POOL, CLUSTER).custodies.find(f => f.custodyAccount.toBase58() === custodyAccountPk.toString())
   }
 

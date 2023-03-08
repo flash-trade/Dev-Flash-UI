@@ -1,5 +1,6 @@
 import {
   CLUSTER,
+  DEFAULT_PERPS_USER,
   DEFAULT_POOL,
   PERPETUALS_PROGRAM_ID,
 } from "@/utils/constants";
@@ -51,7 +52,7 @@ export class ViewHelper {
   simulateTransaction = async (
     transaction: Transaction
   ): Promise<RpcResponseAndContext<SimulatedTransactionResponse>> => {
-    transaction.feePayer = this.provider.publicKey;
+    transaction.feePayer = DEFAULT_PERPS_USER.publicKey;
     return this.connection.simulateTransaction(transaction);
   };
 
@@ -60,6 +61,7 @@ export class ViewHelper {
     instructionNumber: number
   ): T {
     const returnPrefix = `Program return: ${PERPETUALS_PROGRAM_ID} `;
+    console.log("Data:",data);
     if (data.value.logs && data.value.err === null) {
       let returnLog = data.value.logs.find((l: any) =>
         l.startsWith(returnPrefix)
@@ -82,7 +84,7 @@ export class ViewHelper {
       console.log("coder.decode(returnData); ::: ", coder.decode(returnData));
       return coder.decode(returnData);
     } else {
-      throw new Error("No Logs Found");
+      throw new Error(`No Logs Found `,{cause: data});
     }
   }
 
@@ -115,8 +117,9 @@ export class ViewHelper {
     custodyKey: PublicKey
   ): Promise<PriceAndFee> => {
     let program = new Program(IDL, PERPETUALS_PROGRAM_ID, this.provider);
+    console.log("fee payer : ",DEFAULT_PERPS_USER.publicKey.toBase58())
 
-    const transaction = await program.methods
+    let transaction : Transaction = await program.methods
       // @ts-ignore
       .getEntryPriceAndFee({
         collateral,
@@ -132,15 +135,15 @@ export class ViewHelper {
       })
       .transaction();
 
-    // const result = await this.simulateTransaction(transaction);
-    // const index = IDL.instructions.findIndex(
-    //   (f) => f.name === "getEntryPriceAndFee"
-    // );
-    // const res: any = this.decodeLogs(result, index);
+    const result = await this.simulateTransaction(transaction);
+    const index = IDL.instructions.findIndex(
+      (f) => f.name === "getEntryPriceAndFee"
+    );
+    const res: any = this.decodeLogs(result, index);
 
     return {
-      price: new BN(21),//res.price,
-      fee: new BN(0.001),//res.fee,
+      price: res.price,
+      fee: res.fee,
     };
   };
 
@@ -150,6 +153,7 @@ export class ViewHelper {
     position: PublicKey
   ): Promise<PriceAndFee> => {
     let program = new Program(IDL, PERPETUALS_PROGRAM_ID, this.provider);
+    console.log("fee payer : ",DEFAULT_PERPS_USER.publicKey.toBase58())
 
     const transaction = await program.methods
       // @ts-ignore
@@ -183,6 +187,7 @@ export class ViewHelper {
   ): Promise<BN> => {
     let program = new Program(IDL, PERPETUALS_PROGRAM_ID, this.provider);
 
+    console.log("fee payer : ",DEFAULT_PERPS_USER.publicKey.toBase58())
     const transaction = await program.methods
       // @ts-ignore
       .getLiquidationPrice({})
@@ -247,6 +252,7 @@ export class ViewHelper {
           PoolConfig.getCustodyConfig(custodyKey)?.oracleAddress,
       })
       .transaction();
+
     const result = await this.simulateTransaction(transaction);
     const index = IDL.instructions.findIndex(
       (f) => f.name === "getOraclePrice"
@@ -268,6 +274,7 @@ export class ViewHelper {
         custody: custodyKey,
       })
       .transaction();
+
     const result = await this.simulateTransaction(transaction);
     const index = IDL.instructions.findIndex((f) => f.name === "getPnl");
     const res: any = this.decodeLogs<BN>(result, index);
@@ -285,7 +292,7 @@ export class ViewHelper {
   ): Promise<SwapAmountAndFees> => {
     let program = new Program(IDL, PERPETUALS_PROGRAM_ID, this.provider);
 
-    const transaction = await program.methods
+    let transaction = await program.methods
       // @ts-ignore
       .getSwapAmountAndFees({
         amountIn

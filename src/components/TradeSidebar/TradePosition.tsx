@@ -86,8 +86,11 @@ export function TradePosition(props: Props) {
     const View = new ViewHelper(connection, provider );
     const POOL_CONFIG = PoolConfig.fromIdsByName(DEFAULT_POOL, CLUSTER);
     const payTokenCustody = POOL_CONFIG.custodies.find(i => i.mintKey.toBase58()=== getTokenAddress(payToken));
+    // const x = await View.getOraclePrice( POOL_CONFIG.poolAddress, true, payTokenCustody?.custodyAccount!)
+    // console.log("getOraclePrice: ",x);
 
-    const r = await View.getEntryPriceAndFee( new BN(payAmount), new BN(positionAmount) ,props.side as any , POOL_CONFIG.poolAddress, payTokenCustody?.custodyAccount!)
+    console.log("passing :",payAmount, positionAmount)
+    const r = await View.getEntryPriceAndFee( new BN(payAmount * 10**9), new BN(positionAmount * 10**9) ,props.side as any , POOL_CONFIG.poolAddress, payTokenCustody?.custodyAccount!)
     console.log("getEntryPriceAndFee: ",r);
     })()
    

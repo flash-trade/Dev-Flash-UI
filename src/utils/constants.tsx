@@ -50,7 +50,7 @@ export async function getPerpetualProgramAndProvider(wallet?: AnchorWallet) {
   if (wallet) {
     provider = await getProvider(wallet);
   } else {
-    provider = await getProvider(new DefaultWallet(perpsUser));
+    provider = await getProvider(new DefaultWallet(DEFAULT_PERPS_USER));
   }
   let perpetual_program = new Program(
     PERPETUALS_IDL,
@@ -72,7 +72,7 @@ export const perpetualsAddress = findProgramAddressSync(
 )[0];
 
 // default user to launch show basic pool data, etc
-export const perpsUser = Keypair.fromSecretKey(
+export const DEFAULT_PERPS_USER = Keypair.fromSecretKey(
   Uint8Array.from([
     130, 82, 70, 109, 220, 141, 128, 34, 238, 5, 80, 156, 116, 150, 24, 45, 33,
     132, 119, 244, 40, 40, 201, 182, 195, 179, 90, 172, 51, 27, 110, 208, 61,
