@@ -1,5 +1,5 @@
 import { Pool } from "@/lib/PoolAccount";
-import { Side, TradeSide } from "@/lib/PositionAccount";
+import {  TradeSide } from "@/lib/PositionAccount";
 import { getTokenAddress, TokenE } from "@/utils/TokenUtils";
 import {
   getPerpetualProgramAndProvider,

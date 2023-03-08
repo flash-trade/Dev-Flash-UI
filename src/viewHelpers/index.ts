@@ -1,6 +1,16 @@
-import { PERPETUALS_PROGRAM_ID } from "@/utils/constants";
+import {
+  CLUSTER,
+  DEFAULT_POOL,
+  PERPETUALS_PROGRAM_ID,
+} from "@/utils/constants";
 import { AnchorProvider, BN, Program } from "@project-serum/anchor";
-import { Connection, PublicKey, RpcResponseAndContext, SimulatedTransactionResponse, Transaction } from "@solana/web3.js";
+import {
+  Connection,
+  PublicKey,
+  RpcResponseAndContext,
+  SimulatedTransactionResponse,
+  Transaction,
+} from "@solana/web3.js";
 import { IDL, Perpetuals } from "@/target/types/perpetuals";
 import { PoolConfig } from "@/utils/PoolConfig";
 import { decode } from "@project-serum/anchor/dist/cjs/utils/bytes/base64";
@@ -8,29 +18,47 @@ import { IdlCoder } from "@/utils/IdlCoder";
 
 export type PositionSide = "long" | "short";
 
-export class ViewHelper {
+export interface PriceAndFee {
+  price: BN;
+  fee: BN;
+}
 
+export interface ProfitAndLoss {
+  profit: BN;
+  loss: BN;
+}
+
+export interface SwapAmountAndFees {
+   amountOut: BN;
+   feeIn: BN;
+   feeOut: BN;
+}
+
+export class ViewHelper {
   program: Program<Perpetuals>;
-  connection: Connection
+  connection: Connection;
   provider: AnchorProvider;
+  poolConfig: PoolConfig;
 
   constructor(connection: Connection, provider: AnchorProvider) {
     this.connection = connection;
     this.provider = provider;
-    this.program = new Program(
-      IDL,
-      PERPETUALS_PROGRAM_ID,
-      provider
-    );
+    this.program = new Program(IDL, PERPETUALS_PROGRAM_ID, provider);
+    this.poolConfig = PoolConfig.fromIdsByName(DEFAULT_POOL, CLUSTER);
   }
 
   // may need to add blockhash and also probably use VersionedTransactions
-  simulateTransaction = async (transaction: Transaction): Promise<RpcResponseAndContext<SimulatedTransactionResponse>> => {
+  simulateTransaction = async (
+    transaction: Transaction
+  ): Promise<RpcResponseAndContext<SimulatedTransactionResponse>> => {
     transaction.feePayer = this.provider.publicKey;
-    return this.connection.simulateTransaction(transaction)
-  }
+    return this.connection.simulateTransaction(transaction);
+  };
 
-  decodeLogs<T>(data: RpcResponseAndContext<SimulatedTransactionResponse>, instructionNumber: number): T {
+  decodeLogs<T>(
+    data: RpcResponseAndContext<SimulatedTransactionResponse>,
+    instructionNumber: number
+  ): T {
     const returnPrefix = `Program return: ${PERPETUALS_PROGRAM_ID} `;
     if (data.value.logs && data.value.err === null) {
       let returnLog = data.value.logs.find((l: any) =>
@@ -51,25 +79,42 @@ export class ViewHelper {
         Array.from([...(IDL.accounts ?? []), ...(IDL.types ?? [])])
       );
       // return coder.decode(returnData);
-      console.log('coder.decode(returnData); ::: ', coder.decode(returnData))
-      return coder.decode(returnData)
+      console.log("coder.decode(returnData); ::: ", coder.decode(returnData));
+      return coder.decode(returnData);
     } else {
-      throw new Error("No Logs Found")
+      throw new Error("No Logs Found");
     }
   }
+
+  getAssetsUnderManagement = async (
+    poolKey: PublicKey,
+  ): Promise<BN> => {
+    let program = new Program(IDL, PERPETUALS_PROGRAM_ID, this.provider);
+
+    const transaction = await program.methods
+      // @ts-ignore
+      .getAssetsUnderManagement({})
+      .accounts({
+        perpetuals: this.poolConfig.perpetuals,
+        pool: poolKey,
+      })
+      .transaction();
+
+    const result = await this.simulateTransaction(transaction);
+    const index = IDL.instructions.findIndex(
+      (f) => f.name === "getAssetsUnderManagement"
+    );
+    return this.decodeLogs(result, index);
+  };
 
   getEntryPriceAndFee = async (
     collateral: BN,
     size: BN,
     side: PositionSide,
     poolKey: PublicKey,
-    custodyKey: PublicKey,
-  ) => {
-    let program = new Program(
-      IDL,
-      PERPETUALS_PROGRAM_ID,
-      this.provider
-    );
+    custodyKey: PublicKey
+  ): Promise<PriceAndFee> => {
+    let program = new Program(IDL, PERPETUALS_PROGRAM_ID, this.provider);
 
     const transaction = await program.methods
       // @ts-ignore
@@ -79,39 +124,193 @@ export class ViewHelper {
         side: side === "long" ? { long: {} } : { short: {} },
       })
       .accounts({
-        perpetuals:  new PublicKey('5CpxhcrfvH8s9QDT2nMaPWqPoMwpuiPuP8e8x4YN61A2'),
+        perpetuals: this.poolConfig.perpetuals,
         pool: poolKey,
         custody: custodyKey,
-        custodyOracleAccount: PoolConfig.getCustodyConfig(
-          custodyKey
-        )?.oracleAddress,
+        custodyOracleAccount:
+          PoolConfig.getCustodyConfig(custodyKey)?.oracleAddress,
       })
-      .transaction()
+      .transaction();
+
+    // const result = await this.simulateTransaction(transaction);
+    // const index = IDL.instructions.findIndex(
+    //   (f) => f.name === "getEntryPriceAndFee"
+    // );
+    // const res: any = this.decodeLogs(result, index);
+
+    return {
+      price: new BN(21),//res.price,
+      fee: new BN(0.001),//res.fee,
+    };
+  };
+
+  getExitPriceAndFee = async (
+    poolKey: PublicKey,
+    custodyKey: PublicKey,
+    position: PublicKey
+  ): Promise<PriceAndFee> => {
+    let program = new Program(IDL, PERPETUALS_PROGRAM_ID, this.provider);
+
+    const transaction = await program.methods
+      // @ts-ignore
+      .getExitPriceAndFee({})
+      .accounts({
+        perpetuals: this.poolConfig.perpetuals,
+        pool: poolKey,
+        position: position,
+        custody: custodyKey,
+        custodyOracleAccount:
+          PoolConfig.getCustodyConfig(custodyKey)?.oracleAddress,
+      })
+      .transaction();
 
     const result = await this.simulateTransaction(transaction);
-    const index = IDL.instructions.findIndex(f => f.name === 'getEntryPriceAndFee');
-    return this.decodeLogs(result, index)
-  }
+    const index = IDL.instructions.findIndex(
+      (f) => f.name === "getExitPriceAndFee"
+    );
+    const res: any = this.decodeLogs(result, index);
+
+    return {
+      price: res.price,
+      fee: res.fee,
+    };
+  };
+
+  getLiquidationPrice = async (
+    poolKey: PublicKey,
+    custodyKey: PublicKey,
+    position: PublicKey
+  ): Promise<BN> => {
+    let program = new Program(IDL, PERPETUALS_PROGRAM_ID, this.provider);
+
+    const transaction = await program.methods
+      // @ts-ignore
+      .getLiquidationPrice({})
+      .accounts({
+        perpetuals: this.poolConfig.perpetuals,
+        pool: poolKey,
+        position: position,
+        custody: custodyKey,
+        custodyOracleAccount:
+          PoolConfig.getCustodyConfig(custodyKey)?.oracleAddress,
+      })
+      .transaction();
+
+    const result = await this.simulateTransaction(transaction);
+    const index = IDL.instructions.findIndex(
+      (f) => f.name === "getLiquidationPrice"
+    );
+    return this.decodeLogs(result, index);
+  };
+
+  getLiquidationState = async (
+    poolKey: PublicKey,
+    custodyKey: PublicKey,
+    position: PublicKey
+  ): Promise<BN> => {
+    let program = new Program(IDL, PERPETUALS_PROGRAM_ID, this.provider);
+
+    const transaction = await program.methods
+      // @ts-ignore
+      .getLiquidationState({})
+      .accounts({
+        perpetuals: this.poolConfig.perpetuals,
+        pool: poolKey,
+        position: position,
+        custody: custodyKey,
+        custodyOracleAccount:
+          PoolConfig.getCustodyConfig(custodyKey)?.oracleAddress,
+      })
+      .transaction();
+
+    const result = await this.simulateTransaction(transaction);
+    const index = IDL.instructions.findIndex(
+      (f) => f.name === "getLiquidationState"
+    );
+    return this.decodeLogs(result, index);
+  };
 
   getOraclePrice = async (
     poolKey: PublicKey,
     ema: boolean,
-    custodyKey: PublicKey,
-  ) => {
+    custodyKey: PublicKey
+  ): Promise<BN> => {
     const transaction = await this.program.methods
-    .getOraclePrice({
-      ema,
-    })
-    .accounts({
-      perpetuals: new PublicKey('5CpxhcrfvH8s9QDT2nMaPWqPoMwpuiPuP8e8x4YN61A2'),
-      pool: poolKey,
-      custody: custodyKey,
-      custodyOracleAccount: PoolConfig.getCustodyConfig(
-        custodyKey
-      )?.oracleAddress,
-    }).transaction()
-    const result = await this.simulateTransaction(transaction)
-    const index = IDL.instructions.findIndex(f => f.name === 'getOraclePrice');
-    return this.decodeLogs<BN>(result, index)
+      .getOraclePrice({
+        ema,
+      })
+      .accounts({
+        perpetuals: this.poolConfig.perpetuals,
+        pool: poolKey,
+        custody: custodyKey,
+        custodyOracleAccount:
+          PoolConfig.getCustodyConfig(custodyKey)?.oracleAddress,
+      })
+      .transaction();
+    const result = await this.simulateTransaction(transaction);
+    const index = IDL.instructions.findIndex(
+      (f) => f.name === "getOraclePrice"
+    );
+    return this.decodeLogs<BN>(result, index);
   };
-} 
+
+  getPnl = async (
+    poolKey: PublicKey,
+    custodyKey: PublicKey,
+    position: PublicKey
+  ): Promise<ProfitAndLoss> => {
+    const transaction = await this.program.methods
+      .getPnl({})
+      .accounts({
+        perpetuals: this.poolConfig.perpetuals,
+        pool: poolKey,
+        position: position,
+        custody: custodyKey,
+      })
+      .transaction();
+    const result = await this.simulateTransaction(transaction);
+    const index = IDL.instructions.findIndex((f) => f.name === "getPnl");
+    const res: any = this.decodeLogs<BN>(result, index);
+    return {
+      profit: res.profit,
+      loss: res.loss,
+    };
+  };
+
+  getSwapAmountAndFees = async (
+    amountIn: BN,
+    poolKey: PublicKey,
+    receivingCustodyKey: PublicKey,
+    dispensingCustodykey : PublicKey,
+  ): Promise<SwapAmountAndFees> => {
+    let program = new Program(IDL, PERPETUALS_PROGRAM_ID, this.provider);
+
+    const transaction = await program.methods
+      // @ts-ignore
+      .getSwapAmountAndFees({
+        amountIn
+      })
+      .accounts({
+        perpetuals: this.poolConfig.perpetuals,
+        pool: poolKey,
+        receivingCustody: receivingCustodyKey,
+        receivingCustodyOracleAccount:
+          PoolConfig.getCustodyConfig(receivingCustodyKey)?.oracleAddress,
+        dispensingCustody : dispensingCustodykey,
+        dispensingCustodyOracleAccount : PoolConfig.getCustodyConfig(dispensingCustodykey)?.oracleAddress,
+      })
+      .transaction();
+
+    const result = await this.simulateTransaction(transaction);
+    const index = IDL.instructions.findIndex(
+      (f) => f.name === "getSwapAmountAndFees"
+    );
+    const res: any = this.decodeLogs(result, index);
+
+    return {
+      amountOut: res.amountOut,
+      feeIn: res.feeIn,
+      feeOut : res.feeOut
+    };
+  };
+}

@@ -5,11 +5,14 @@ import poolConfigs from './PoolConfig.json';
 
 export class PoolConfig {
   constructor(
+    public programId: PublicKey,
     public cluster: Cluster,
     public poolName: string,
     public poolAddress: PublicKey,
     public lpTokenMint: PublicKey,
     public lpDecimals: number,
+    public perpetuals: PublicKey,
+
 
     // public perpMarketAccountKey: string,
     // public multisigAccountKey: string,
@@ -89,11 +92,13 @@ export class PoolConfig {
       }
     })
     return new PoolConfig(
+      new PublicKey(poolConfig.programId),
       poolConfig.cluster as Cluster,
       poolConfig.poolName,
       new PublicKey(poolConfig.poolAddress),
       new PublicKey(poolConfig.lpTokenMint),
       poolConfig.lpDecimals,
+      new PublicKey(poolConfig.perpetuals),
       tokens,
       custodies,
     );
@@ -123,11 +128,13 @@ export class PoolConfig {
       })
 
     return new PoolConfig(
+      new PublicKey(poolConfig.programId),
       poolConfig.cluster as Cluster,
       poolConfig.poolName,
       new PublicKey(poolConfig.poolAddress),
       new PublicKey(poolConfig.lpTokenMint),
       poolConfig.lpDecimals,
+      new PublicKey(poolConfig.perpetuals),
       tokens,
       custodies,
     );

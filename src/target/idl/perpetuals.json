@@ -1140,6 +1140,11 @@
       "name": "getEntryPriceAndFee",
       "accounts": [
         {
+          "name": "signer",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
           "name": "perpetuals",
           "isMut": false,
           "isSigner": false
@@ -1175,6 +1180,11 @@
     {
       "name": "getExitPriceAndFee",
       "accounts": [
+        {
+          "name": "signer",
+          "isMut": false,
+          "isSigner": true
+        },
         {
           "name": "perpetuals",
           "isMut": false,
@@ -1217,6 +1227,11 @@
       "name": "getPnl",
       "accounts": [
         {
+          "name": "signer",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
           "name": "perpetuals",
           "isMut": false,
           "isSigner": false
@@ -1258,6 +1273,11 @@
       "name": "getLiquidationPrice",
       "accounts": [
         {
+          "name": "signer",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
           "name": "perpetuals",
           "isMut": false,
           "isSigner": false
@@ -1296,6 +1316,11 @@
     {
       "name": "getLiquidationState",
       "accounts": [
+        {
+          "name": "signer",
+          "isMut": false,
+          "isSigner": true
+        },
         {
           "name": "perpetuals",
           "isMut": false,
@@ -1336,6 +1361,11 @@
       "name": "getOraclePrice",
       "accounts": [
         {
+          "name": "signer",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
           "name": "perpetuals",
           "isMut": false,
           "isSigner": false
@@ -1369,6 +1399,11 @@
     {
       "name": "getSwapAmountAndFees",
       "accounts": [
+        {
+          "name": "signer",
+          "isMut": false,
+          "isSigner": true
+        },
         {
           "name": "perpetuals",
           "isMut": false,
@@ -1415,6 +1450,11 @@
     {
       "name": "getAssetsUnderManagement",
       "accounts": [
+        {
+          "name": "signer",
+          "isMut": false,
+          "isSigner": true
+        },
         {
           "name": "perpetuals",
           "isMut": false,
@@ -3087,8 +3127,5 @@
       "name": "InstructionNotAllowed",
       "msg": "Instruction is not allowed at this time"
     }
-  ],
-  "metadata": {
-    "address": "PERP9EeXeGnyEqGmxGSan4nGRAFNLwTufLJmiYsTJ8j"
-  }
+  ]
 }

@@ -2,16 +2,14 @@ import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
 import { useDailyPriceStats } from "@/hooks/useDailyPriceStats";
-import { asTokenE, TokenE, tokenAddressToTokenE } from "@/utils/TokenUtils";
+import { asTokenE, TokenE, tokenAddressToTokenE, getTokenAddress } from "@/utils/TokenUtils";
 
 import { TokenSelector } from "../TokenSelector";
 import { LeverageSlider } from "../LeverageSlider";
 import { TradeDetails } from "./TradeDetails";
 import { SolidButton } from "../SolidButton";
 import { TradePositionDetails } from "./TradePositionDetails";
-import { PoolSelector } from "../PoolSelector";
 import { useRouter } from "next/router";
-import { Tab } from ".";
 import { openPosition } from "src/actions/openPosition";
 
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
@@ -21,13 +19,14 @@ import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { fetchTokenBalance } from "@/utils/retrieveData";
 
 import { usePositions } from "@/hooks/usePositions";
+import { CLUSTER, DEFAULT_POOL, getPerpetualProgramAndProvider, POOL_CONFIG } from "@/utils/constants";
+import { PositionSide, ViewHelper } from "@/viewHelpers/index";
 import { PoolConfig } from "@/utils/PoolConfig";
-import { useGlobalStore } from "@/stores/store";
-import { POOL_CONFIG } from "@/utils/constants";
+import { Side } from "@/types/index";
 
 interface Props {
   className?: string;
-  side: Tab;
+  side: Side;
 }
 
 enum Input {
@@ -50,6 +49,8 @@ export function TradePosition(props: Props) {
   const { publicKey, signTransaction, wallet } = useWallet();
   const { connection } = useConnection();
 
+ 
+
   const { fetchPositions } = usePositions();
 
   // const pool = useGlobalStore(state => state.selectedPool);
@@ -59,7 +60,6 @@ export function TradePosition(props: Props) {
 
   const { pair } = router.query;
 
-  let tokenList: TokenE[] = [];
 
   async function handleTrade() {
     await openPosition(
@@ -79,22 +79,39 @@ export function TradePosition(props: Props) {
   }
 
   useEffect(() => {
-    setPositionToken(asTokenE(pair.split("-")[0]));
+    
+   ( async ()  => {
+
+    let { provider } = await getPerpetualProgramAndProvider(wallet as any);
+    const View = new ViewHelper(connection, provider );
+    const POOL_CONFIG = PoolConfig.fromIdsByName(DEFAULT_POOL, CLUSTER);
+    const payTokenCustody = POOL_CONFIG.custodies.find(i => i.mintKey.toBase58()=== getTokenAddress(payToken));
+
+    const r = await View.getEntryPriceAndFee( new BN(payAmount), new BN(positionAmount) ,props.side as any , POOL_CONFIG.poolAddress, payTokenCustody?.custodyAccount!)
+    console.log("getEntryPriceAndFee: ",r);
+    })()
+   
+  }, [ positionAmount,  props.side , wallet ]) //payAmount - already changes with positionAmount
+  
+
+  useEffect(() => {
+    setPositionToken(asTokenE(pair!.split("-")[0]));
   }, [pair]);
 
   useEffect(() => {
     async function fetchData() {
+      if (publicKey == null) {
+       return;
+      }
       let tokenBalance = await fetchTokenBalance(
         payToken,
         publicKey,
         connection
       );
-
       setPayTokenBalance(tokenBalance);
     }
-    if (publicKey) {
-      fetchData();
-    }
+    fetchData();
+    
   }, [connection, payToken, publicKey]);
 
   const entryPrice = allPriceStats[payToken]?.currentPrice * payAmount || 0;
@@ -112,7 +129,7 @@ export function TradePosition(props: Props) {
           {publicKey && (
             <div
               className="flex flex-row space-x-1 font-medium text-white hover:cursor-pointer"
-              onClick={() => setPayAmount(payTokenBalance)}
+              onClick={() => setPayAmount(payTokenBalance!)}
             >
               <p>{payTokenBalance?.toFixed(3) ?? 0}</p>
               <p className="font-normal">{payToken}</p>
@@ -120,7 +137,7 @@ export function TradePosition(props: Props) {
             </div>
           )}
         </div>
-        {/* <TokenSelector
+        <TokenSelector
           className="mt-2"
           amount={payAmount}
           token={payToken}
@@ -134,11 +151,11 @@ export function TradePosition(props: Props) {
           tokenList={POOL_CONFIG.tokens.map((token) => {
             return tokenAddressToTokenE(token.mintKey.toBase58());
           })}
-        /> */}
+        />
         <div className="mt-4 text-sm font-medium text-white">
           Your {props.side}
         </div>
-        {/* <TokenSelector
+        <TokenSelector
           className="mt-2"
           amount={positionAmount}
           token={positionToken}
@@ -154,7 +171,7 @@ export function TradePosition(props: Props) {
           tokenList={POOL_CONFIG.tokens.map((token) => {
             return tokenAddressToTokenE(token.mintKey.toBase58());
           })}
-        /> */}
+        />
         <div className="mt-4 text-xs text-zinc-400">Pool</div>
         {/* <PoolSelector
           className="mt-2"
@@ -184,17 +201,9 @@ export function TradePosition(props: Props) {
           fees={0.05}
         />
         <TradePositionDetails
+          className={twMerge("-mb-4","-mx-4","bg-zinc-900","mt-4","pb-5","pt-4","px-4")}
           availableLiquidity={3871943.82}
           borrowFee={0.0052}
-          className={twMerge(
-            "-mb-4",
-            "-mx-4",
-            "bg-zinc-900",
-            "mt-4",
-            "pb-5",
-            "pt-4",
-            "px-4"
-          )}
           entryPrice={16.4}
           exitPrice={16.4}
           token={positionToken}

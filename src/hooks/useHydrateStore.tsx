@@ -7,7 +7,7 @@ import { getMint, MintLayout } from '@solana/spl-token'
 import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react'
 import { PublicKey } from '@solana/web3.js'
 import React, { useEffect } from 'react'
-import { ViewHelper } from '../viewHelpers'
+
 
 
 export const useHydrateStore = () => {

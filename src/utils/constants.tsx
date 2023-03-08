@@ -2,7 +2,7 @@ import { Cluster, Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { Program } from "@project-serum/anchor";
 
 import { IDL as PERPETUALS_IDL } from "@/target/types/perpetuals";
-import * as PerpetualsJson from "@/target/idl/perpetuals.json";
+// import * as PerpetualsJson from "@/target/idl/perpetuals.json";
 import { getProvider } from "@/utils/provider";
 import { findProgramAddressSync } from "@project-serum/anchor/dist/cjs/utils/pubkey";
 import NodeWallet from "@project-serum/anchor/dist/cjs/nodewallet";
@@ -10,14 +10,18 @@ import { Wallet } from "@project-serum/anchor/dist/cjs/provider";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
 import { PoolConfig } from "./PoolConfig";
 
-export const PERPETUALS_PROGRAM_ID = new PublicKey(
-  PerpetualsJson["metadata"]["address"]
-);
+
 
 export const CLUSTER: Cluster = process.env.NEXT_CLUSTER as Cluster || 'devnet';
-export const DEFAULT_POOL: string = process.env.NEXT_DEFAULT_POOL || 'TestPool1';
+export const DEFAULT_POOL: string = process.env.NEXT_DEFAULT_POOL || 'FlashPool1';
 
 export const POOL_CONFIG = PoolConfig.fromIdsByName(DEFAULT_POOL, CLUSTER);
+
+export const PERPETUALS_PROGRAM_ID = new PublicKey(POOL_CONFIG.programId);
+
+// export const PERPETUALS_PROGRAM_ID = new PublicKey(
+//   PerpetualsJson["metadata"]["address"]
+// );
 
 
 export class DefaultWallet implements Wallet {
@@ -58,12 +62,12 @@ export async function getPerpetualProgramAndProvider(wallet?: AnchorWallet) {
 }
 
 export const transferAuthorityAddress = findProgramAddressSync(
-  ["transfer_authority"],
+  [Buffer.from("transfer_authority")],
   PERPETUALS_PROGRAM_ID
 )[0];
 
 export const perpetualsAddress = findProgramAddressSync(
-  ["perpetuals"],
+  [Buffer.from("perpetuals")],
   PERPETUALS_PROGRAM_ID
 )[0];
 

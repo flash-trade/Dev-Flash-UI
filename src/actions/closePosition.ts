@@ -1,4 +1,3 @@
-import { Side } from "@/lib/PositionAccount";
 import { getTokenAddress, TokenE } from "@/utils/TokenUtils";
 import {
   getPerpetualProgramAndProvider,
@@ -17,6 +16,7 @@ import {
   PublicKey,
   Transaction,
 } from "@solana/web3.js";
+import { Side } from "../types";
 
 export async function closePosition(
   wallet: Wallet,

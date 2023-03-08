@@ -6,6 +6,7 @@ import ArrowsHorizontalIcon from "@carbon/icons-react/lib/ArrowsHorizontal";
 import { SidebarTab } from "../SidebarTab";
 import { TradeSwap } from "@/components/TradeSidebar/TradeSwap";
 import { TradePosition } from "./TradePosition";
+import { Side } from "@/types/index";
 
 export enum Tab {
   Long = "Long",
@@ -49,9 +50,9 @@ export function TradeSidebar(props: Props) {
             <div>Swap</div>
           </SidebarTab>
         </div>
-        {tab === Tab.Long && <TradePosition className="mt-6" side={Tab.Long} />}
+        {tab === Tab.Long && <TradePosition className="mt-6" side={Side.Long} />}
         {tab === Tab.Short && (
-          <TradePosition className="mt-6" side={Tab.Short} />
+          <TradePosition className="mt-6" side={Side.Short} />
         )}
         {tab === Tab.Swap && <TradeSwap className="mt-6" />}
       </div>

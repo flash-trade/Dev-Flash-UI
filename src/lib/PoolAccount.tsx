@@ -90,7 +90,7 @@ export class PoolAccount {
           symbol: custody.symbol,
           price: price,
           targetWeight: token.targetRatio,
-          currentWeight: (custodyData.assets.owned.mul(price)).div(this.poolData.aumUsd), // use getAssetsUnderManagement()
+          currentWeight: 0,//(custodyData.assets.owned.mul(price)).div(this.poolData.aumUsd), // use getAssetsUnderManagement()
           utilization: new BN(0),//custodyData.assets.locked.mul(new BN(10**6)).div(custodyData.assets.owned).div(new BN(10**6)),
         })
       }

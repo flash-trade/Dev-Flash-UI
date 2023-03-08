@@ -37,6 +37,8 @@ export async function changeLiquidity(
 ) {
   let { perpetual_program } = await getPerpetualProgramAndProvider(wallet);
 
+console.log("POOL_CONFIG.programId:",POOL_CONFIG.programId.toBase58())
+
   let lpTokenAccount = await getAssociatedTokenAddress(
     POOL_CONFIG.lpTokenMint,
     publicKey

@@ -2,10 +2,11 @@ import { useEffect } from "react";
 
 import { tokenAddressToTokenE } from "@/utils/TokenUtils";
 import { getPerpetualProgramAndProvider } from "@/utils/constants";
-import { Position, UserPoolPositions, Side } from "@/lib/PositionAccount";
+import { Position, UserPoolPositions } from "@/lib/PositionAccount";
 import { useAnchorWallet, useWallet } from "@solana/wallet-adapter-react";
 import {  useGlobalStore } from "@/stores/store";
 import { shallow } from "zustand/shallow";
+import { Side } from "../types";
 
 interface Pending {
   status: "pending";

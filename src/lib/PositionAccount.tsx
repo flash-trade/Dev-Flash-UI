@@ -1,10 +1,7 @@
+import { Side } from "../types";
 import { TokenE } from "../utils/TokenUtils";
 
-export enum Side {
-  None,
-  Long,
-  Short,
-}
+
 
 export class TradeSide {
   static Long = { long: {} };

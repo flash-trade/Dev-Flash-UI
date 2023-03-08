@@ -9,7 +9,8 @@ import NewTab from "@carbon/icons-react/lib/NewTab";
 import { getTokenEIcon, getTokenELabel } from "@/utils/TokenUtils";
 import { PositionColumn } from "./PositionColumn";
 import { PositionValueDelta } from "./PositionValueDelta";
-import { Position, Side } from "@/lib/PositionAccount";
+import { Position } from "@/lib/PositionAccount";
+import { Side } from "@/types/index";
 
 function formatPrice(num: number) {
   const formatter = new Intl.NumberFormat("en", {

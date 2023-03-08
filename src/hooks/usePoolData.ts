@@ -103,11 +103,11 @@ export function usePoolData() {
 
   return useMemo(() => {
 
-    if (custodies) {
-      return  getPoolData();
-    } else {
+    // if (custodies) {
+    //   return  getPoolData();
+    // } else {
       return defaultData;
-    }
+    // }
 
   }, [custodies, timer])
 
