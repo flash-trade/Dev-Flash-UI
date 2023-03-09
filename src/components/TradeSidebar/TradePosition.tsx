@@ -20,7 +20,7 @@ import { fetchTokenBalance } from "@/utils/retrieveData";
 
 import { usePositions } from "@/hooks/usePositions";
 import { CLUSTER, DEFAULT_POOL, getPerpetualProgramAndProvider, POOL_CONFIG } from "@/utils/constants";
-import { PositionSide, ViewHelper } from "@/viewHelpers/index";
+import {  ViewHelper } from "@/viewHelpers/index";
 import { PoolConfig } from "@/utils/PoolConfig";
 import { Side } from "@/types/index";
 
@@ -41,6 +41,10 @@ export function TradePosition(props: Props) {
 
   const [payAmount, setPayAmount] = useState(0.1);
   const [positionAmount, setPositionAmount] = useState(0.2);
+
+  const [entryPrice, setEntryPrice] = useState(0)
+  const [entryFee, setEntryFee] = useState(0)
+  const [liquidationPrice, setLiquidationPrice] = useState(0)
 
   const [lastChanged, setLastChanged] = useState<Input>(Input.Pay);
 
@@ -90,11 +94,23 @@ export function TradePosition(props: Props) {
     // console.log("getOraclePrice: ",x);
 
     console.log("passing :",payAmount, positionAmount)
-    const r = await View.getEntryPriceAndFee( new BN(payAmount * 10**9), new BN(positionAmount * 10**9) ,props.side as any , POOL_CONFIG.poolAddress, payTokenCustody?.custodyAccount!)
-    console.log("getEntryPriceAndFee: ",r);
+    //  const entryPrice = allPriceStats[payToken]?.currentPrice * payAmount || 0;
+    const r = await View.getEntryPriceAndFee( new BN(payAmount * 10**(payTokenCustody?.decimals!)), new BN(positionAmount * 10**(payTokenCustody?.decimals!)) ,props.side as any , POOL_CONFIG.poolAddress, payTokenCustody?.custodyAccount!)
+    console.log("getEntryPriceAndFee, setEntryFee: ",r.price.toNumber(), r.fee.toNumber());
+    const price = r.price.toNumber()/ 10**6; 
+    setEntryPrice(price);
+    setEntryFee( price* r.fee.toNumber()/ 10**((payTokenCustody?.decimals!)))
+
     })()
    
   }, [ positionAmount,  props.side , wallet ]) //payAmount - already changes with positionAmount
+  
+
+  useEffect(() => {
+    console.log("leverage:",leverage)
+    let liquidationPrice = (entryPrice) * leverage;
+    setLiquidationPrice(liquidationPrice);
+  }, [leverage, entryPrice])
   
 
   useEffect(() => {
@@ -117,8 +133,7 @@ export function TradePosition(props: Props) {
     
   }, [connection, payToken, publicKey]);
 
-  const entryPrice = allPriceStats[payToken]?.currentPrice * payAmount || 0;
-  const liquidationPrice = entryPrice * leverage;
+ 
 
   if (!pair) {
     return <p>Pair not loaded</p>;
@@ -201,7 +216,7 @@ export function TradePosition(props: Props) {
           collateralToken={payToken}
           entryPrice={entryPrice}
           liquidationPrice={liquidationPrice}
-          fees={0.05}
+          fees={entryFee}
         />
         <TradePositionDetails
           className={twMerge("-mb-4","-mx-4","bg-zinc-900","mt-4","pb-5","pt-4","px-4")}

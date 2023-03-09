@@ -35,7 +35,7 @@ export function LeverageSlider(props: Props) {
       <div>
         <Slider.Root
           min={1}
-          max={50}
+          max={10}
           step={0.01}
           value={[props.value]}
           onValueChange={(values) => props.onChange?.(values[0] || 1)}
@@ -61,7 +61,7 @@ export function LeverageSlider(props: Props) {
           </Slider.Track>
         </Slider.Root>
       </div>
-      <div className="pl-3 pr-6 text-sm text-zinc-400">50x</div>
+      <div className="pl-3 pr-6 text-sm text-zinc-400">10x</div>
       <div
         className={twMerge(
           "bg-zinc-900",

@@ -1,13 +1,11 @@
-import { PoolPositions } from "@/lib/PositionAccount";
+import { UserPoolPositions } from "@/lib/PositionAccount";
 import { twMerge } from "tailwind-merge";
-import { PoolTokens } from "../PoolTokens";
 import PoolPositionHeader from "./PoolPositionHeader";
-import { PositionColumn } from "./PositionColumn";
 import { SinglePosition as PoolPositionRow } from "./PoolPositionRow";
 
 interface Props {
   className?: string;
-  poolPositions: PoolPositions;
+  poolPositions: UserPoolPositions;
 }
 
 export function ExistingPosition(props: Props) {

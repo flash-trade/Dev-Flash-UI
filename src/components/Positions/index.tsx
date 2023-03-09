@@ -1,7 +1,6 @@
 import { usePositions } from "@/hooks/usePositions";
 
 import { LoadingDots } from "../LoadingDots";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { ExistingPosition } from "./ExistingPosition";
 import { NoPositions } from "./NoPositions";
 

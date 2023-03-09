@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { useDailyPriceStats } from "@/hooks/useDailyPriceStats";
-import { TokenE } from "@/utils/TokenUtils";
+import { getTokenAddress, TokenE } from "@/utils/TokenUtils";
 
 import { TokenSelector } from "../TokenSelector";
 import { SolidButton } from "../SolidButton";
@@ -9,6 +9,10 @@ import { TradeSwapDetails } from "./TradeSwapDetails";
 import { swap } from "src/actions/swap";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { BN } from "@project-serum/anchor";
+import { CLUSTER, DEFAULT_POOL, getPerpetualProgramAndProvider } from "@/utils/constants";
+import { ViewHelper } from "@/viewHelpers/index";
+import { PoolConfig } from "@/utils/PoolConfig";
+import { PublicKey } from "@solana/web3.js";
 
 
 interface Props {
@@ -29,17 +33,34 @@ export function TradeSwap(props: Props) {
 
   const { publicKey, signTransaction, wallet } = useWallet();
 
+
   useEffect(() => {
-    const payTokenPrice = allPriceStats[payToken]?.currentPrice || 0;
-    const receiveTokenPrice = allPriceStats[receiveToken]?.currentPrice || 0;
+    
+    (async () => {
+      const payTokenPrice = allPriceStats[payToken]?.currentPrice || 0;
+      const receiveTokenPrice = allPriceStats[receiveToken]?.currentPrice || 0;
 
-    const conversionRatio = payTokenPrice / receiveTokenPrice;
+      const conversionRatio = payTokenPrice / receiveTokenPrice;
 
-    const receiveAmount = payAmount * conversionRatio;
-    setReceiveAmount(receiveAmount);
+      const receiveAmount = payAmount * conversionRatio;
+      setReceiveAmount(receiveAmount);
+
+
+      let { provider } = await getPerpetualProgramAndProvider(wallet as any);
+      const View = new ViewHelper(connection, provider );
+      const POOL_CONFIG = PoolConfig.fromIdsByName(DEFAULT_POOL, CLUSTER);
+
+      const payTokenCustody = POOL_CONFIG.custodies.find(i => i.mintKey.toBase58()=== getTokenAddress(payToken));
+      const receiveTokenCustody = POOL_CONFIG.custodies.find(i => i.mintKey.toBase58()=== getTokenAddress(receiveToken));
+
+      const r = await View.getSwapAmountAndFees(new BN(payAmount * 10**(payTokenCustody?.decimals!)),new PublicKey(POOL_CONFIG.poolAddress),receiveTokenCustody?.custodyAccount!, payTokenCustody?.custodyAccount!);
+      console.log("getSwapAmountAndFees: ",r.amountOut.toNumber() ,r.feeIn.toNumber(), r.feeOut.toNumber());
+
+    })()
+
   }, [payAmount, payToken, receiveToken, allPriceStats]);
 
-  // FIX: using to interdependent useEffects will create a infinite loop change
+  // FIX: using two interdependent useEffects will create a infinite loop change
   // useEffect(() => {
   //   const payTokenPrice = allPriceStats[payToken]?.currentPrice || 0;
   //   const receiveTokenPrice = allPriceStats[receiveToken]?.currentPrice || 0;

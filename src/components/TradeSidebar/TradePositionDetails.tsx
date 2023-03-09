@@ -55,7 +55,7 @@ export function TradePositionDetails(props: Props) {
             value: `$${formatPrice(props.exitPrice)}`,
           },
           {
-            label: "Borrow Price",
+            label: "Borrow rate",
             value: (
               <>
                 {`${formatFees(props.borrowFee)}% `}
