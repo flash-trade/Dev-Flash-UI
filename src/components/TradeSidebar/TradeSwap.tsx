@@ -12,7 +12,6 @@ import { BN } from "@project-serum/anchor";
 import { CLUSTER, DEFAULT_POOL, getPerpetualProgramAndProvider } from "@/utils/constants";
 import { ViewHelper } from "@/viewHelpers/index";
 import { PoolConfig } from "@/utils/PoolConfig";
-import { PublicKey } from "@solana/web3.js";
 
 
 interface Props {
@@ -25,12 +24,11 @@ export function TradeSwap(props: Props) {
   const [receiveToken, setReceiveToken] = useState(TokenE.USDC);
   const [receiveAmount, setReceiveAmount] = useState(0);
 
+  const [swapFeeUSD, setSwapFeeUSD] = useState(0);
+
   const allPriceStats = useDailyPriceStats();
 
-
   const { connection } = useConnection();
-
-
   const { publicKey, signTransaction, wallet } = useWallet();
 
 
@@ -39,11 +37,10 @@ export function TradeSwap(props: Props) {
     (async () => {
       const payTokenPrice = allPriceStats[payToken]?.currentPrice || 0;
       const receiveTokenPrice = allPriceStats[receiveToken]?.currentPrice || 0;
-
-      const conversionRatio = payTokenPrice / receiveTokenPrice;
-
-      const receiveAmount = payAmount * conversionRatio;
-      setReceiveAmount(receiveAmount);
+      console.log("payTokenPrice, receiveTokenPrice:",payTokenPrice,receiveTokenPrice)
+      // const conversionRatio = payTokenPrice / receiveTokenPrice;
+      // const receiveAmount = payAmount * conversionRatio;
+      // setReceiveAmount(receiveAmount);
 
 
       let { provider } = await getPerpetualProgramAndProvider(wallet as any);
@@ -53,12 +50,21 @@ export function TradeSwap(props: Props) {
       const payTokenCustody = POOL_CONFIG.custodies.find(i => i.mintKey.toBase58()=== getTokenAddress(payToken));
       const receiveTokenCustody = POOL_CONFIG.custodies.find(i => i.mintKey.toBase58()=== getTokenAddress(receiveToken));
 
-      const r = await View.getSwapAmountAndFees(new BN(payAmount * 10**(payTokenCustody?.decimals!)),new PublicKey(POOL_CONFIG.poolAddress),receiveTokenCustody?.custodyAccount!, payTokenCustody?.custodyAccount!);
+      const r = await View.getSwapAmountAndFees(new BN(payAmount * 10**(payTokenCustody?.decimals!)),POOL_CONFIG.poolAddress,payTokenCustody?.custodyAccount!, receiveTokenCustody?.custodyAccount!);
       console.log("getSwapAmountAndFees: ",r.amountOut.toNumber() ,r.feeIn.toNumber(), r.feeOut.toNumber());
+
+      const receiveAmount = r.amountOut.toNumber() / 10**(receiveTokenCustody?.decimals!)
+      setReceiveAmount(receiveAmount);
+
+      const swapInFeeUSD = payTokenPrice * r.feeIn.toNumber() / 10**(payTokenCustody?.decimals!);
+      const swapOutFeeUSD = receiveTokenPrice * r.feeOut.toNumber() / 10**(receiveTokenCustody?.decimals!)
+      console.log("swapInFeeUSD, swapOutFeeUSD:",swapInFeeUSD,swapOutFeeUSD, payTokenCustody?.decimals, receiveTokenCustody?.decimals, payAmount * 10**(payTokenCustody?.decimals!))
+
+      setSwapFeeUSD(swapInFeeUSD + swapOutFeeUSD);
 
     })()
 
-  }, [payAmount, payToken, receiveToken, allPriceStats]);
+  }, [payAmount, payToken, receiveToken]);
 
   // FIX: using two interdependent useEffects will create a infinite loop change
   // useEffect(() => {
@@ -118,7 +124,7 @@ export function TradeSwap(props: Props) {
       <TradeSwapDetails
         availableLiquidity={3871943.82}
         className="mt-4"
-        fees={12.3}
+        fees={swapFeeUSD}
         payToken={payToken}
         payTokenPrice={allPriceStats[payToken]?.currentPrice || 0}
         receiveToken={receiveToken}
