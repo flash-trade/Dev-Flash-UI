@@ -29,7 +29,7 @@ export function usePositions() {
   const [positionAccounts, setPositionAccounts] = useState<PositionAccount[]>([])
 
   const fetchPositions = async () => {
-    if (!wallet) return;
+    if (!wallet || !connection ) return;
     if (!publicKey) {
       return;
     }

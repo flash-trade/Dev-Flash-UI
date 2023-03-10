@@ -33,6 +33,7 @@ export class PoolConfig {
       mintKey: PublicKey;
       decimals: number;
       isStable: boolean;
+      pythTicker : string;
     }[],
 
     public custodies: CustodyConfig[],

@@ -20,6 +20,8 @@ import { POOL_CONFIG } from "@/utils/constants";
 import { usePoolData } from "@/hooks/usePoolData";
 import { BN } from "@project-serum/anchor";
 import { useGlobalStore } from "@/stores/store";
+import { usePythPrices } from "@/hooks/usePythPrices";
+import { getTokenAddress, TokenE, getSymbol } from "@/utils/TokenUtils";
 
 interface Props {
   className?: string;
@@ -31,12 +33,14 @@ enum Tab {
   Remove,
 }
 
+
 export default function LiquidityCard(props: Props) {
   const { wallet, publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
   const lpMintData = useGlobalStore(state => state.lpMintData);
 
   const poolData = usePoolData();
+  const {prices} = usePythPrices();
 
   const [tokenAmount, setTokenAmount] = useState(10);
 
@@ -55,8 +59,6 @@ export default function LiquidityCard(props: Props) {
   const [payToken, setPayToken] = useState(tokenList[0]);
 
 
-  const stats = useDailyPriceStats();
-
   useEffect(() => {
     async function fetchData() {
       let tokenBalance = await fetchTokenBalance(
@@ -72,24 +74,30 @@ export default function LiquidityCard(props: Props) {
         publicKey!,
         connection
       );
-
       setUserLpTokenBalance(lpBalance);
-
-      console.log("lpMintData:",lpMintData)
-      if(lpMintData && poolData && poolData.lpStats.totalPoolValue.toString()){
-        const supply= lpMintData.supply.toString();
-        const poolAUm = poolData.lpStats.totalPoolValue.toString();
-        console.log("supply:",supply )
-        const userLPShare =  (new BN(supply)).div(poolData.lpStats.totalPoolValue).div(new BN(10 ** lpMintData.decimals));
-        setUserLPShare(userLPShare.toNumber());
-      }
-       
     }
-    if (publicKey && Object.values(stats).length > 0 && payToken) {
-      console.log("passed iff", stats);
+    if (publicKey && payToken) {
       fetchData();
     }
-  }, [payToken, stats]);
+  }, [payToken]);
+
+  useEffect(() => {
+
+    
+    if(tokenAmount && payToken && lpMintData && poolData && poolData.lpStats.totalPoolValue.toString()){
+      const supply= lpMintData.supply.toString();
+      const poolAumBN = poolData.lpStats.totalPoolValue;
+      console.log("supply:",supply )
+      const depositUsd = tokenAmount * (prices.get(getSymbol(payToken)) ?? 0);
+      const shareBN = (new BN(depositUsd)).div(poolAumBN);
+      const userLPShare =  (new BN(supply)).mul(shareBN).div(new BN(10 ** lpMintData.decimals));
+      setUserLPShare(userLPShare.toNumber());
+    }
+
+  }, [tokenAmount])
+  
+
+
 
   async function changeLiq() {
     console.log("before change", tab === Tab.Remove, liqAmount);

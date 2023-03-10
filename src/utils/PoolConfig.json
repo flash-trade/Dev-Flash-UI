@@ -21,13 +21,15 @@
             "symbol": "USDC",
             "mintKey": "Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr",
             "decimals": 6,
-            "isStable": true
+            "isStable": true,
+            "pythTicker" : "Crypto.USDC/USD"
           },
           {
             "symbol": "SOL",
             "mintKey": "So11111111111111111111111111111111111111112",
             "decimals": 9,
-            "isStable": false
+            "isStable": false,
+            "pythTicker" : "Crypto.SOL/USD"
           }
         ],
         "custodies": [

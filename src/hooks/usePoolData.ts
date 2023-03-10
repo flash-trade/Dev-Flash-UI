@@ -6,6 +6,7 @@ import { PoolConfig } from "@/utils/PoolConfig";
 import { BN } from "@project-serum/anchor";
 import { CustodyAccount } from "@/lib/CustodyAccount";
 import { PublicKey } from "@solana/web3.js";
+import { usePythPrices } from "./usePythPrices";
 
 
 export interface ViewPoolData {
@@ -70,12 +71,12 @@ export function usePoolData() {
   const poolData = useGlobalStore(state => state.poolData);
   const lpMintData = useGlobalStore(state => state.lpMintData);
 
-   const getPoolData =  () : ViewPoolData => {
+  const {prices} = usePythPrices();
 
+
+  const getPoolData =  () : ViewPoolData => {
     const poolConfig = PoolConfig.fromIdsByName(DEFAULT_POOL, CLUSTER);
-
-    if(!poolData || !lpMintData) return defaultData;
-
+    if(!poolData || !lpMintData || !prices) return defaultData;
     // const pool = new PoolAccount(poolConfig, poolData, lpMintData, Array.from([custodies.keys(), custodies.values()]).map(t => CustodyAccount.from(new PublicKey(t), {...(custodies.get(t))}))
     const pool = new PoolAccount(
       poolConfig, 
@@ -87,8 +88,8 @@ export function usePoolData() {
       oiLong: pool.getOiLongUI(),
       oiShort: pool.getOiShortUI(),
       poolStats: pool.getPoolStats(),
-      custodyDetails: pool.getCustodyDetails(new BN(1)),
-      lpStats : pool.getLpStats(new BN(1))
+      custodyDetails: pool.getCustodyDetails(prices),
+      lpStats : pool.getLpStats(prices)
     }
   }
 

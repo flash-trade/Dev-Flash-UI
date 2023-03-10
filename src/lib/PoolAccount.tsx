@@ -31,7 +31,7 @@ export class PoolAccount {
     this.lpTokenInfo = lpTokenInfo
   }
 
-  getLpStats(price: BN = new BN(0)){
+  getLpStats(prices : any){
 
      let stableCoinAmount = new BN(0);
      let totalPoolValueUsd = new BN(0);
@@ -43,11 +43,13 @@ export class PoolAccount {
         if (custodyData.isStable) {  
           stableCoinAmount.add(custodyData.assets.owned)
         }
-        const custodyValue = price.mul(custodyData.assets.collateral)
+        const priceBN = new BN(prices.get(custody.symbol))
+        const custodyValue = priceBN.mul(custodyData.assets.collateral)
         totalPoolValueUsd.add(custodyValue)
       }
     }
-    const lpPrice = price.mul(new BN(10));// TODO: calculate ?
+    // totalAUM/supply
+    const lpPrice = totalPoolValueUsd.div(new BN(this.lpTokenInfo.supply.toString()))
     
      return  {
        lpTokenSupply : new BN(this.lpTokenInfo.supply.toString()),
@@ -77,7 +79,7 @@ export class PoolAccount {
   }
 
   // handle decimal and this should accept a list of prices probs map or object
-  getCustodyDetails(price: BN = new BN(0)) {
+  getCustodyDetails(prices : any) {
     const custodyDetails = [];
     for (const custody of this.poolConfig.custodies) {
       const token = this.poolData.tokens.find(t => t.custody.toBase58() === custody.custodyAccount.toBase58());
@@ -88,7 +90,7 @@ export class PoolAccount {
       if(custodyData && token) {
         custodyDetails.push({
           symbol: custody.symbol,
-          price: price,
+          price: new BN(prices.get(custody.symbol)),
           targetWeight: token.targetRatio,
           currentWeight: new BN(0),//(custodyData.assets.owned.mul(price)).div(this.poolData.aumUsd), // use getAssetsUnderManagement()
           utilization: new BN(0),//custodyData.assets.locked.mul(new BN(10**6)).div(custodyData.assets.owned).div(new BN(10**6)),
