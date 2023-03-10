@@ -17,21 +17,55 @@ export interface Token {
     maxRatio: BN;
 }
 
+export interface BorrowRateParams {
+    // borrow rate params have implied RATE_DECIMALS decimals
+     baseRate: BN,
+     slope1: BN,
+     slope2: BN,
+     optimalUtilization: BN,
+}
+
+export interface BorrowRateState {
+    // borrow rates have implied RATE_DECIMALS decimals
+     currentRate: BN,
+     cumulativeInterest: BN,
+     lastUpdate: BN,
+}
+
+export interface PositionStats {
+     openPositions: BN,
+     collateralUsd: BN,
+     sizeUsd: BN,
+     lockedAmount: BN,
+     weightedLeverage: BN,
+     totalLeverage: BN,
+     cumulativeInterestUsd: BN,
+     cumulativeInterestSnapshot: BN,
+}
+
 export interface Custody {
+    // static parameters
+    pool: PublicKey;
     mint: PublicKey;
     tokenAccount: PublicKey;
     decimals: number;
     isStable: boolean;
-    oracle: Oracle;
-    pricing: Pricing;
+    oracle: OracleParams;
+    pricing: PricingParams;
     permissions: Permissions;
     fees: Fees;
-    borrowRate: BN;
-    borrowRateSum: BN;
+    borrowRate: BorrowRateParams;
+
+    // dynamic variables
     assets: Assets;
-    collectedFees: CollectedFees;
-    volumeStats: CollectedFees;
+    collectedFees: FeesStats;
+    volumeStats: VolumeStats;
     tradeStats: TradeStats;
+    longPositions: PositionStats,
+    shortPositions: PositionStats,
+    borrowRateState: BorrowRateState,
+    
+    // bumps for address validation
     bump: number;
     tokenAccountBump: number;
 }
@@ -43,7 +77,16 @@ export interface Assets {
     locked: BN;
 }
 
-export interface CollectedFees {
+export interface FeesStats {
+    swapUsd: BN;
+    addLiquidityUsd: BN;
+    removeLiquidityUsd: BN;
+    openPositionUsd: BN;
+    closePositionUsd: BN;
+    liquidationUsd: BN;
+}
+
+export interface VolumeStats {
     swapUsd: BN;
     addLiquidityUsd: BN;
     removeLiquidityUsd: BN;
@@ -70,7 +113,7 @@ export enum FeesMode {
     Linear
 }
 
-export interface Oracle {
+export interface OracleParams {
     oracleAccount: PublicKey;
     oracleType: OracleType;
     maxPriceError: BN;
@@ -94,8 +137,9 @@ export interface Permissions {
     allowSizeChange: boolean;
 }
 
-export interface Pricing {
+export interface PricingParams {
     useEma: boolean;
+    useUnrealizedPnlInAum: boolean;
     tradeSpreadLong: BN;
     tradeSpreadShort: BN;
     swapSpread: BN;

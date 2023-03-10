@@ -19,10 +19,11 @@ import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { fetchTokenBalance } from "@/utils/retrieveData";
 
 import { usePositions } from "@/hooks/usePositions";
-import { CLUSTER, DEFAULT_POOL, getPerpetualProgramAndProvider, POOL_CONFIG } from "@/utils/constants";
+import { CLUSTER, DEFAULT_POOL, getPerpetualProgramAndProvider, POOL_CONFIG, RATE_DECIMALS } from "@/utils/constants";
 import {  ViewHelper } from "@/viewHelpers/index";
 import { PoolConfig } from "@/utils/PoolConfig";
 import { Side } from "@/types/index";
+import { useGlobalStore } from "@/stores/store";
 
 interface Props {
   className?: string;
@@ -38,49 +39,54 @@ export function TradePosition(props: Props) {
   const [payToken, setPayToken] = useState(TokenE.SOL);
   const [positionToken, setPositionToken] = useState(TokenE.SOL);
   const [payTokenBalance, setPayTokenBalance] = useState<number | null>(null);
+  const [leverage, setLeverage] = useState(1);
 
   const [payAmount, setPayAmount] = useState(0.1);
   const [positionAmount, setPositionAmount] = useState(0.2);
 
   const [entryPrice, setEntryPrice] = useState(0)
+  const [exitPrice, setExitPrice] = useState(0)
   const [entryFee, setEntryFee] = useState(0)
   const [liquidationPrice, setLiquidationPrice] = useState(0)
+  const [borrowRate, setBorrowRate] = useState(0);
+  const [availableLiquidity, setAvailableLiquidity] = useState(0);
+  const [openInterest, setOpenInterest] = useState(0)
 
   const [lastChanged, setLastChanged] = useState<Input>(Input.Pay);
 
-  const [leverage, setLeverage] = useState(1);
 
   const { publicKey, signTransaction, wallet } = useWallet();
   const { connection } = useConnection();
 
- 
+  const custodies = useGlobalStore(state => state.custodies);
 
   const { fetchPositions } = usePositions();
-
-  // const pool = useGlobalStore(state => state.selectedPool);
 
   const allPriceStats = useDailyPriceStats();
   const router = useRouter();
 
   const { pair } = router.query;
 
+  const POOL_CONFIG = PoolConfig.fromIdsByName(DEFAULT_POOL, CLUSTER);
 
-  async function handleTrade() {
-    await openPosition(
-      wallet!,
-      publicKey,
-      signTransaction,
-      connection,
-      payToken,
-      positionToken,
-      new BN(payAmount * LAMPORTS_PER_SOL),
-      new BN(positionAmount * LAMPORTS_PER_SOL),
-      new BN(allPriceStats[payToken]?.currentPrice * 10 ** 6),
-      props.side
-    );
-    fetchPositions();
-    // router.reload(window.location.pathname);
-  }
+
+  useEffect(() => {
+    // (async () => {
+    const positionTokenCustody = POOL_CONFIG.custodies.find(i => i.mintKey.toBase58()=== getTokenAddress(positionToken));
+    
+    const positionTokenCustodyData = custodies.get(positionTokenCustody?.custodyAccount.toBase58()!);
+    if(positionTokenCustodyData!== undefined && positionTokenCustody){
+      console.log("borow rate:",positionTokenCustodyData.borrowRateState.currentRate.toNumber())
+      setBorrowRate(positionTokenCustodyData.borrowRateState.currentRate.toNumber()/ 10**(RATE_DECIMALS-2))
+      const currentLongUSD = positionTokenCustodyData.longPositions.sizeUsd.toNumber() / 10**RATE_DECIMALS;
+      const positiontokenPrice = allPriceStats[positionToken]?.currentPrice || 0;
+      const maxLongCapacity = positiontokenPrice * positionTokenCustodyData.assets.owned.toNumber() / 10**(positionTokenCustody?.decimals!)
+      setOpenInterest(currentLongUSD)
+      setAvailableLiquidity(maxLongCapacity - currentLongUSD)
+    }
+
+    // })()
+  }, [custodies, positionToken])
 
   useEffect(() => {
     
@@ -88,22 +94,30 @@ export function TradePosition(props: Props) {
 
     let { provider } = await getPerpetualProgramAndProvider(wallet as any);
     const View = new ViewHelper(connection, provider );
-    const POOL_CONFIG = PoolConfig.fromIdsByName(DEFAULT_POOL, CLUSTER);
-    const payTokenCustody = POOL_CONFIG.custodies.find(i => i.mintKey.toBase58()=== getTokenAddress(payToken));
-    // const x = await View.getOraclePrice( POOL_CONFIG.poolAddress, true, payTokenCustody?.custodyAccount!)
-    // console.log("getOraclePrice: ",x);
-
+    const positionTokenCustody = POOL_CONFIG.custodies.find(i => i.mintKey.toBase58()=== getTokenAddress(positionToken));
+   
     console.log("passing :",payAmount, positionAmount)
-    //  const entryPrice = allPriceStats[payToken]?.currentPrice * payAmount || 0;
-    const r = await View.getEntryPriceAndFee( new BN(payAmount * 10**(payTokenCustody?.decimals!)), new BN(positionAmount * 10**(payTokenCustody?.decimals!)) ,props.side as any , POOL_CONFIG.poolAddress, payTokenCustody?.custodyAccount!)
+    //  const entryPrice = allPriceStats[positionToken]?.currentPrice * payAmount || 0;
+    const r = await View.getEntryPriceAndFee( new BN(payAmount * 10**(positionTokenCustody?.decimals!)), new BN(positionAmount * 10**(positionTokenCustody?.decimals!)) ,props.side as any , POOL_CONFIG.poolAddress, positionTokenCustody?.custodyAccount!)
     console.log("getEntryPriceAndFee, setEntryFee: ",r.price.toNumber(), r.fee.toNumber());
     const price = r.price.toNumber()/ 10**6; 
     setEntryPrice(price);
-    setEntryFee( price* r.fee.toNumber()/ 10**((payTokenCustody?.decimals!)))
+    setEntryFee( price* r.fee.toNumber()/ 10**((positionTokenCustody?.decimals!)))
+
+     const oraclePrice = allPriceStats[positionToken]?.currentPrice  || 0; // chnage to oracle
+    const emaPrice = await View.getOraclePrice( POOL_CONFIG.poolAddress, true, positionTokenCustody?.custodyAccount!)
+    console.log("getOraclePrice, emaPrice: ",oraclePrice,emaPrice.toNumber()/10**6)
+    if(props.side == 1){ //long
+      const min = Math.min(oraclePrice,emaPrice.toNumber()/10**6)
+      setExitPrice(min)
+    } else {
+      const max = Math.max(oraclePrice,emaPrice.toNumber()/10**6)
+      setExitPrice(max)
+    }
 
     })()
    
-  }, [ positionAmount,  props.side , wallet ]) //payAmount - already changes with positionAmount
+  }, [ positionAmount,  props.side , wallet ,positionToken ]) //payAmount - already changes with positionAmount
   
 
   useEffect(() => {
@@ -133,6 +147,24 @@ export function TradePosition(props: Props) {
     
   }, [connection, payToken, publicKey]);
 
+  async function handleTrade() {
+    await openPosition(
+      wallet!,
+      publicKey,
+      signTransaction,
+      connection,
+      payToken,
+      positionToken,
+      new BN(payAmount * LAMPORTS_PER_SOL),
+      new BN(positionAmount * LAMPORTS_PER_SOL),
+      new BN(allPriceStats[payToken]?.currentPrice * 10 ** 6),
+      props.side
+    );
+    fetchPositions();
+    // router.reload(window.location.pathname);
+  }
+
+  
  
 
   if (!pair) {
@@ -171,7 +203,7 @@ export function TradePosition(props: Props) {
           })}
         />
         <div className="mt-4 text-sm font-medium text-white">
-          Your {props.side}
+          You {props.side === 1 ? "Long" : "Short"}
         </div>
         <TokenSelector
           className="mt-2"
@@ -186,9 +218,9 @@ export function TradePosition(props: Props) {
             setPositionToken(token);
             router.push("/trade/" + token + "-USD");
           }}
-          tokenList={POOL_CONFIG.tokens.map((token) => {
+          tokenList={POOL_CONFIG.tokens.filter(x => !x.isStable).map((token) => {
             return tokenAddressToTokenE(token.mintKey.toBase58());
-          })}
+          }) }
         />
         <div className="mt-4 text-xs text-zinc-400">Pool</div>
         {/* <PoolSelector
@@ -220,12 +252,13 @@ export function TradePosition(props: Props) {
         />
         <TradePositionDetails
           className={twMerge("-mb-4","-mx-4","bg-zinc-900","mt-4","pb-5","pt-4","px-4")}
-          availableLiquidity={3871943.82}
-          borrowFee={0.0052}
-          entryPrice={16.4}
-          exitPrice={16.4}
+          availableLiquidity={availableLiquidity}
+          openInterest={openInterest}
+          borrowRate={borrowRate}
+          entryPrice={entryPrice}
+          exitPrice={exitPrice}
           token={positionToken}
-          side={props.side}
+          side={props.side as any}
         />
       </div>
     );

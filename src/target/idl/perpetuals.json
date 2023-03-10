@@ -1203,7 +1203,7 @@
         }
       ],
       "returns": {
-        "defined": "PriceAndFee"
+        "defined": "NewPositionPricesAndFee"
       }
     },
     {
@@ -2809,6 +2809,26 @@
       }
     },
     {
+      "name": "NewPositionPricesAndFee",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "entryPrice",
+            "type": "u64"
+          },
+          {
+            "name": "liquidationPrice",
+            "type": "u64"
+          },
+          {
+            "name": "fee",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "SwapAmountAndFees",
       "type": {
         "kind": "struct",
@@ -3132,5 +3152,8 @@
       "name": "InstructionNotAllowed",
       "msg": "Instruction is not allowed at this time"
     }
-  ]
+  ],
+  "metadata": {
+    "address": "GEt9mvPQSGBsLNQdPS442CowNPCdUtLgKQ7SYMVsNFXc"
+  }
 }

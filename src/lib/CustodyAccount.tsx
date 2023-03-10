@@ -1,6 +1,6 @@
 import { BN } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
-import { Assets, CollectedFees, Custody, Fees, Oracle,  Pricing, TradeStats, Permissions } from "../types";
+import { Assets, FeesStats, Custody, Fees, Oracle,  PricingParams, TradeStats, Permissions } from "../types";
 
 
 export class CustodyAccount {
@@ -13,14 +13,14 @@ export class CustodyAccount {
           decimals: number;
           isStable: boolean;
           oracle: Oracle;
-          pricing: Pricing;
+          pricing: PricingParams;
           permissions: Permissions;
           fees: Fees;
           borrowRate: BN;
           borrowRateSum: BN;
           assets: Assets;
-          collectedFees: CollectedFees;
-          volumeStats: CollectedFees;
+          collectedFees: FeesStats;
+          volumeStats: FeesStats;
           tradeStats: TradeStats;
         },
       ): CustodyAccount {
@@ -50,14 +50,14 @@ export class CustodyAccount {
         public decimals: number,
         public isStable: boolean,
         public oracle: Oracle,
-        public pricing: Pricing,
+        public pricing: PricingParams,
         public permissions: Permissions,
         public fees: Fees,
         public borrowRate: BN,
         public borrowRateSum: BN,
         public assets: Assets,
-        public collectedFees: CollectedFees,
-        public volumeStats: CollectedFees,
+        public collectedFees: FeesStats,
+        public volumeStats: FeesStats,
         public tradeStats: TradeStats,
       ) {
       }

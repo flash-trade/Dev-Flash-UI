@@ -90,11 +90,11 @@ export const useHydrateStore = () => {
         const accountInfo = await connection.getAccountInfo(custody.custodyAccount)
         if(accountInfo) {
           const custodyData = perpetual_program.coder.accounts.decode<Custody>('custody', accountInfo.data);
-          addCustody(custody.custodyAccount, custodyData)
+          addCustody(custody.custodyAccount.toBase58(), custodyData)
         }
         const subId = connection.onAccountChange(custody.custodyAccount, (accountInfo) => {
           const custodyData = perpetual_program.coder.accounts.decode<Custody>('custody', accountInfo.data);
-          addCustody(custody.custodyAccount, custodyData)
+          addCustody(custody.custodyAccount.toBase58(), custodyData)
         })
         subIds.push(subId)
       }

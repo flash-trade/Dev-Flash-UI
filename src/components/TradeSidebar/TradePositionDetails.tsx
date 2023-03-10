@@ -22,7 +22,8 @@ function formatFees(num: number) {
 
 interface Props {
   availableLiquidity: number;
-  borrowFee: number;
+  openInterest : number;
+  borrowRate: number;
   className?: string;
   entryPrice: number;
   exitPrice: number;
@@ -58,7 +59,7 @@ export function TradePositionDetails(props: Props) {
             label: "Borrow rate",
             value: (
               <>
-                {`${formatFees(props.borrowFee)}% `}
+                {`${formatFees(props.borrowRate)}% `}
                 <span className="text-zinc-500"> </span>
               </>
             ),
