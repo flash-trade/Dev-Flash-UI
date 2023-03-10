@@ -3,6 +3,16 @@ import { Cluster, PublicKey } from '@solana/web3.js';
 import { CLUSTER, DEFAULT_POOL } from './constants';
 import poolConfigs from './PoolConfig.json';
 
+
+export interface CustodyConfig {
+  custodyAccount: PublicKey;
+  tokenAccount: PublicKey;
+  symbol: string;
+  mintKey: PublicKey;
+  decimals: number;
+  isStable: boolean,
+  oracleAddress: PublicKey;
+}
 export class PoolConfig {
   constructor(
     public programId: PublicKey,
@@ -25,15 +35,7 @@ export class PoolConfig {
       isStable: boolean;
     }[],
 
-    public custodies: {
-      custodyAccount: PublicKey;
-      tokenAccount: PublicKey;
-      symbol: string;
-      mintKey: PublicKey;
-      decimals: number;
-      isStable: boolean,
-      oracleAddress: PublicKey;
-    }[],
+    public custodies: CustodyConfig[],
   ) { }
 
   public getAllTokenMints(): PublicKey[] {

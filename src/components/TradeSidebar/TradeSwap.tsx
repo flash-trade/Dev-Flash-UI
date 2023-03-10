@@ -20,7 +20,7 @@ interface Props {
 
 export function TradeSwap(props: Props) {
   const [payToken, setPayToken] = useState(TokenE.SOL);
-  const [payAmount, setPayAmount] = useState(0);
+  const [payAmount, setPayAmount] = useState(0.1);
   const [receiveToken, setReceiveToken] = useState(TokenE.USDC);
   const [receiveAmount, setReceiveAmount] = useState(0);
 
@@ -33,7 +33,9 @@ export function TradeSwap(props: Props) {
 
 
   useEffect(() => {
-    
+    if(!payAmount || !payToken || !receiveToken ) {
+      return;
+    }
     (async () => {
       const payTokenPrice = allPriceStats[payToken]?.currentPrice || 0;
       const receiveTokenPrice = allPriceStats[receiveToken]?.currentPrice || 0;

@@ -67,8 +67,6 @@ export function TradePosition(props: Props) {
 
   const { pair } = router.query;
 
-  const POOL_CONFIG = PoolConfig.fromIdsByName(DEFAULT_POOL, CLUSTER);
-
 
   useEffect(() => {
     // (async () => {
@@ -160,8 +158,8 @@ export function TradePosition(props: Props) {
       new BN(allPriceStats[payToken]?.currentPrice * 10 ** 6),
       props.side
     );
+    // fetch and add to store
     fetchPositions();
-    // router.reload(window.location.pathname);
   }
 
   

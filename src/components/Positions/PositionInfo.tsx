@@ -6,11 +6,11 @@ import ChevronDownIcon from "@carbon/icons-react/lib/ChevronDown";
 import { ACCOUNT_URL } from "@/utils/TransactionHandlers";
 import NewTab from "@carbon/icons-react/lib/NewTab";
 
-import { getTokenEIcon, getTokenELabel } from "@/utils/TokenUtils";
+import { getTokenEIcon, getTokenELabel, asTokenE } from "@/utils/TokenUtils";
 import { PositionColumn } from "./PositionColumn";
 import { PositionValueDelta } from "./PositionValueDelta";
-import { Position } from "@/lib/PositionAccount";
 import { Side } from "@/types/index";
+import { PositionAccount } from "@/lib/PositionAccount";
 
 function formatPrice(num: number) {
   const formatter = new Intl.NumberFormat("en", {
@@ -23,12 +23,12 @@ function formatPrice(num: number) {
 interface Props {
   className?: string;
   expanded?: boolean;
-  position: Position;
+  position: PositionAccount;
   onClickExpand?(): void;
 }
 
 export function PositionInfo(props: Props) {
-  const tokenIcon = getTokenEIcon(props.position.token);
+  const tokenIcon = getTokenEIcon(props.position.custodyConfig.symbol);
 
   return (
     <div className={twMerge("flex", "items-center", "py-5", props.className)}>
@@ -52,15 +52,15 @@ export function PositionInfo(props: Props) {
             ),
           })}
           <div className="pr-2">
-            <div className="font-bold text-white">{props.position.token}</div>
+            <div className="font-bold text-white">{props.position.custodyConfig.symbol}</div>
             <div className="mt-0.5 truncate text-sm font-medium text-zinc-500">
-              {getTokenELabel(props.position.token)}
+              {getTokenELabel(asTokenE(props.position.custodyConfig.symbol))}
             </div>
           </div>
         </div>
       </PositionColumn>
       <PositionColumn num={2}>
-        <div className="text-sm text-white">{props.position.leverage}x</div>
+        <div className="text-sm text-white">{props.position.leverage ?? "1"}x</div>
         <div
           className={twMerge(
             "flex",
@@ -84,18 +84,18 @@ export function PositionInfo(props: Props) {
       </PositionColumn>
       <PositionColumn num={3}>
         <div className="text-sm text-white">
-          ${formatPrice(props.position.value)}
+          ${formatPrice(props.position.sizeUsd.toNumber())}
         </div>
         <PositionValueDelta
           className="mt-0.5"
-          valueDelta={props.position.valueDelta}
-          valueDeltaPercentage={props.position.valueDeltaPercentage}
+          valueDelta={props.position.pnlUsd.toNumber()}
+          valueDeltaPercentage={(props.position.collateralUsd.toNumber() - props.position.pnlUsd.toNumber())/100}
         />
       </PositionColumn>
       <PositionColumn num={4}>
         <div className="flex items-center">
           <div className="text-sm text-white">
-            ${formatPrice(props.position.collateral)}
+            ${formatPrice(props.position.collateralAmount.toNumber()/ 10**(props.position.custodyConfig.decimals))}
           </div>
           <button className="group ml-2">
             <EditIcon
@@ -112,25 +112,25 @@ export function PositionInfo(props: Props) {
       </PositionColumn>
       <PositionColumn num={5}>
         <div className="text-sm text-white">
-          ${formatPrice(props.position.entryPrice)}
+          ${formatPrice(props.position.price.toNumber())}
         </div>
       </PositionColumn>
-      <PositionColumn num={6}>
+      {/* <PositionColumn num={6}>
         <div className="text-sm text-white">
           ${formatPrice(props.position.markPrice)}
         </div>
-      </PositionColumn>
-      <PositionColumn num={7}>
+      </PositionColumn> */}
+      <PositionColumn num={6}>
         <div className="flex items-center justify-between pr-2">
           <div className="text-sm text-white">
-            ${formatPrice(props.position.liquidationPrice)}
+            ${formatPrice(props.position.liquidationPriceUsd.toNumber())}
           </div>
           <div className="flex items-center space-x-2">
             <a
               target="_blank"
               rel="noreferrer"
               href={`${ACCOUNT_URL(
-                props.position.positionAccountAddress.toString()
+                props.position.publicKey.toBase58()
               )}`}
             >
               <NewTab className="fill-white" />

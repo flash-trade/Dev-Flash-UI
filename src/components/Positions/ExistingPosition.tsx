@@ -1,14 +1,17 @@
-import { UserPoolPositions } from "@/lib/PositionAccount";
+import { usePositions } from "@/hooks/usePositions";
+import { PositionAccount } from "@/lib/PositionAccount";
 import { twMerge } from "tailwind-merge";
 import PoolPositionHeader from "./PoolPositionHeader";
 import { SinglePosition as PoolPositionRow } from "./PoolPositionRow";
 
 interface Props {
   className?: string;
-  poolPositions: UserPoolPositions;
 }
 
 export function ExistingPosition(props: Props) {
+
+  const { positionAccounts } = usePositions();
+  
   return (
     <div className="mb-4">
       <div
@@ -24,13 +27,13 @@ export function ExistingPosition(props: Props) {
         {/* We cannot use a real grid layout here since we have nested grids.
                 Instead, we're going to fake a grid by assinging column widths to
                 percentages. */}
-        <PoolPositionHeader poolPositions={props.poolPositions} />
+        <PoolPositionHeader token={"SOL"} />
       </div>
-      {props.poolPositions.positions.map((position, index) => (
+      {positionAccounts.map((position, index) => (
         <PoolPositionRow
           className={twMerge(
             "border-zinc-700",
-            index < props.poolPositions.positions.length - 1 && "border-b"
+            index < positionAccounts.length - 1 && "border-b"
           )}
           position={position}
           key={index}

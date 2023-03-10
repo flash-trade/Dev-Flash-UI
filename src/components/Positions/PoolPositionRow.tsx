@@ -3,11 +3,11 @@ import { useState } from "react";
 
 import { PositionInfo } from "./PositionInfo";
 import { PositionAdditionalInfo } from "./PositionAdditionalInfo";
-import { Position } from "@/lib/PositionAccount";
+import { PositionAccount } from "@/lib/PositionAccount";
 
 interface Props {
   className?: string;
-  position: Position;
+  position: PositionAccount;
 }
 
 export function SinglePosition(props: Props) {

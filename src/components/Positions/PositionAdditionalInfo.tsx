@@ -1,19 +1,16 @@
-import { usePoolData } from "@/hooks/usePoolData";
-import { Pool } from "@/lib/PoolAccount";
-import { Position } from "@/lib/PositionAccount";
 import CloseIcon from "@carbon/icons-react/lib/Close";
 import EditIcon from "@carbon/icons-react/lib/Edit";
 import { BN } from "@project-serum/anchor";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { format } from "date-fns";
-import { useState } from "react";
 import { closePosition } from "src/actions/closePosition";
 import { twMerge } from "tailwind-merge";
 import { PositionValueDelta } from "./PositionValueDelta";
 import { SolidButton } from "../SolidButton";
 import { useDailyPriceStats } from "@/hooks/useDailyPriceStats";
-import { useRouter } from "next/router";
 import { usePositions } from "@/hooks/usePositions";
+import { PositionAccount } from "@/lib/PositionAccount";
+import { asTokenE } from "@/utils/TokenUtils";
 
 function formatPrice(num: number) {
   const formatter = new Intl.NumberFormat("en", {
@@ -25,7 +22,7 @@ function formatPrice(num: number) {
 
 interface Props {
   className?: string;
-  position: Position;
+  position: PositionAccount;
 }
 
 export function PositionAdditionalInfo(props: Props) {
@@ -33,10 +30,8 @@ export function PositionAdditionalInfo(props: Props) {
   const { connection } = useConnection();
   const allPriceStats = useDailyPriceStats();
 
-  const { pools } = usePoolData();
-
-  let payToken = props.position.token;
-  let positionToken = props.position.token;
+  let payToken =  asTokenE(props.position.custodyConfig.symbol);
+  let positionToken =asTokenE(props.position.custodyConfig.symbol);
   const { fetchPositions } = usePositions();
 
   async function handleCloseTrade() {
@@ -48,7 +43,7 @@ export function PositionAdditionalInfo(props: Props) {
       connection,
       payToken,
       positionToken,
-      props.position.positionAccountAddress,
+      props.position.publicKey.toBase58(),
       props.position.side,
       new BN(allPriceStats[payToken]?.currentPrice * 10 ** 6)
     );
@@ -85,15 +80,15 @@ export function PositionAdditionalInfo(props: Props) {
         <div>
           <div className="text-xs text-zinc-500">Time</div>
           <div className="mt-1 text-sm text-white">
-            {format(props.position.timestamp, "d MMM yyyy • p")}
+            {format(props.position.openTime.toNumber(), "d MMM yyyy • p")}
           </div>
         </div>
         <div>
           <div className="text-xs text-zinc-500">PnL</div>
           <PositionValueDelta
             className="mt-0.5"
-            valueDelta={props.position.pnlDelta}
-            valueDeltaPercentage={props.position.pnlDeltaPercent}
+            valueDelta={props.position.pnlUsd.toNumber()}
+            valueDeltaPercentage={(props.position.collateralUsd.toNumber() - props.position.pnlUsd.toNumber())/ 100}
             formatValueDelta={formatPrice}
           />
         </div>
@@ -101,7 +96,7 @@ export function PositionAdditionalInfo(props: Props) {
           <div className="text-xs text-zinc-500">Size</div>
           <div className="mt-1 flex items-center">
             <div className="text-sm text-white">
-              ${formatPrice(props.position.size)}
+              ${formatPrice(props.position.sizeUsd.toNumber())}
             </div>
             <button className="group ml-2">
               <EditIcon
@@ -119,7 +114,7 @@ export function PositionAdditionalInfo(props: Props) {
         <div>
           <div className="text-xs text-zinc-500">Liq. Threshold</div>
           <div className="mt-1 text-sm text-white">
-            ${formatPrice(props.position.liquidationThreshold)}
+            ${formatPrice(props.position.liquidationPriceUsd.toNumber())}
           </div>
         </div>
       </div>

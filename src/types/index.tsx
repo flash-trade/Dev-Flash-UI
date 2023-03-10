@@ -165,7 +165,7 @@ export interface Position {
     owner: PublicKey,
     pool: PublicKey,
     custody: PublicKey,
-    lockCustody: PublicKey,
+    // lockCustody: PublicKey,
 
     openTime: BN,
     updateTime: BN,

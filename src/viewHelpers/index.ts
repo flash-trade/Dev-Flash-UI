@@ -61,7 +61,7 @@ export class ViewHelper {
     instructionNumber: number
   ): T {
     const returnPrefix = `Program return: ${PERPETUALS_PROGRAM_ID} `;
-    console.log("Data:",data);
+    // console.log("Data:",data); 
     if (data.value.logs && data.value.err === null) {
       let returnLog = data.value.logs.find((l: any) =>
         l.startsWith(returnPrefix)
@@ -81,7 +81,7 @@ export class ViewHelper {
         Array.from([...(IDL.accounts ?? []), ...(IDL.types ?? [])])
       );
       // return coder.decode(returnData);
-      console.log("coder.decode(returnData); ::: ", coder.decode(returnData));
+      // console.log("coder.decode(returnData); ::: ", coder.decode(returnData));
       return coder.decode(returnData);
     } else {
       throw new Error(`No Logs Found `,{cause: data});

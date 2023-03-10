@@ -5,9 +5,7 @@ import { twMerge } from "tailwind-merge";
 import { useState } from "react";
 
 import { PoolTokens } from "./PoolTokens";
-import { Pool } from "@/lib/PoolAccount";
 import { PoolConfig } from "@/utils/PoolConfig";
-import { useGlobalStore } from "@/stores/store";
 
 interface Props {
   className?: string;

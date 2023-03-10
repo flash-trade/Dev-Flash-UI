@@ -1,14 +1,14 @@
-import { PositionRequest } from "@/hooks/usePositions";
-import { Custody, Pool } from "@/types/index";
-import { CLUSTER, DEFAULT_POOL } from "@/utils/constants";
-import { PoolConfig } from "@/utils/PoolConfig";
+import { Custody, Pool, Position } from "@/types/index";
 import { Mint } from "@solana/spl-token";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
 interface StoreState {
-  userPositions: PositionRequest;
-  setUserPositions: (position: PositionRequest) => void;
+  positions: Map<string, Position>;
+  setPositions: (positions: Map<string, Position>) => void;
+  addPosition: (positionPk: string, position: Position) => void;
+  removePosition: (positionPk: string) => void;
+
 
   userLpTokens: Record<string, number>;
   setUserLpTokens: (lpTokens: Record<string, number>) => void;
@@ -16,7 +16,7 @@ interface StoreState {
   poolData?: Pool;
   setPoolData: (pool: Pool) => void
   lpMintData?: any;
-  setLpMintData: (mint: any) => void 
+  setLpMintData: (mint: Mint) => void 
 
   custodies: Map<string, Custody>;
   setCustodies: (custodies: Map<string, Custody>) => void;
@@ -26,10 +26,18 @@ interface StoreState {
 export const useGlobalStore = create<StoreState>()(
   devtools((set, _get) => ({
     devtools: false,
-    userPositions: {
-      status: "pending",
-    },
-    setUserPositions: (position: PositionRequest) => set({ userPositions: position }),
+    positions: new Map<string, Position>(),
+    setPositions: (positions: Map<string, Position>) => set({ positions }),
+    addPosition: (positionPk: string, position: Position) => set((state) => {
+      const positions = new Map<string, Position>(state.positions);
+      positions.set(positionPk, position)
+      return { positions: positions }
+    }),
+    removePosition: (positionPk: string) => set((state) => {
+      let positions = new Map<string, Position>(state.positions);
+      positions.delete(positionPk)
+      return { positions: positions }
+    }),
     
     userLpTokens: {},
     setUserLpTokens: (lpTokens: Record<string, number>) =>

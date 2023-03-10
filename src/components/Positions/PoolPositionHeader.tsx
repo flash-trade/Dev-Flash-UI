@@ -1,10 +1,12 @@
-import { PoolPositions } from "@/lib/PositionAccount";
+
+import { PositionAccount } from "@/lib/PositionAccount";
+import { DEFAULT_POOL } from "@/utils/constants";
 import { PoolTokens } from "../PoolTokens";
 import { PositionColumn } from "./PositionColumn";
 
 interface Props {
   className?: string;
-  poolPositions: PoolPositions;
+  token: string;
 }
 
 export default function PoolPositionHeader(props: Props) {
@@ -12,9 +14,9 @@ export default function PoolPositionHeader(props: Props) {
     <>
       <PositionColumn num={1}>
         <div className="flex max-w-fit items-center rounded-t bg-zinc-800 py-1.5 px-2">
-          <PoolTokens tokens={props.poolPositions.tokens} />
+          <PoolTokens tokens={[props.token]} />
           <div className="ml-1 text-sm font-medium text-white">
-            {props.poolPositions.name}
+            {DEFAULT_POOL}
           </div>
         </div>
       </PositionColumn>

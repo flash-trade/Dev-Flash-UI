@@ -1,56 +1,42 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { tokenAddressToTokenE } from "@/utils/TokenUtils";
 import { getPerpetualProgramAndProvider } from "@/utils/constants";
-import { Position, UserPoolPositions } from "@/lib/PositionAccount";
-import { useAnchorWallet, useWallet } from "@solana/wallet-adapter-react";
+import { useAnchorWallet, useConnection, useWallet } from "@solana/wallet-adapter-react";
 import {  useGlobalStore } from "@/stores/store";
 import { shallow } from "zustand/shallow";
-import { Side } from "../types";
+import { Position, Side } from "../types";
+import { ViewHelper } from "../viewHelpers";
+import { PositionAccount } from "@/lib/PositionAccount";
 
-interface Pending {
-  status: "pending";
-}
-
-interface Failure {
-  status: "failure";
-  error: Error;
-}
-
-interface Success {
-  status: "success";
-  data: UserPoolPositions[];
-}
-
-export type PositionRequest = Pending | Failure | Success;
-
+//  fetches postions from store 
+//  find if any new postions and add to store
+//  should fetch every 10 secods , pnl, liquidationPrice 
 export function usePositions() {
-  const { positions, setUserPositions } = useGlobalStore(
+  const { positions, addPosition, removePosition, setPositions } = useGlobalStore(
     (state) => ({
-      positions: state.userPositions,
-      setUserPositions: state.setUserPositions,
+      positions: state.positions,
+      addPosition: state.addPosition,
+      removePostion: state.removePosition,
+      setPositions: state.setPositions,
     }),
     shallow
   );
 
   const { publicKey } = useWallet();
   const wallet = useAnchorWallet();
+  const { connection } = useConnection();
+
+
+  const [positionAccounts, setPositionAccounts] = useState<PositionAccount[]>([])
+
   const fetchPositions = async () => {
     if (!wallet) return;
     if (!publicKey) {
       return;
     }
-
     let { perpetual_program } = await getPerpetualProgramAndProvider(wallet);
-
-    // not needed to fetch always pools 
-    let fetchedPools = await perpetual_program.account.pool.all();
-    let poolNames: Record<string, string> = {};
-
-    fetchedPools.forEach((pool) => {
-      poolNames[pool.publicKey.toBase58()] = pool.account.name;
-    });
-
+    
     let fetchedPositions = await perpetual_program.account.position.all([
       {
         memcmp: {
@@ -60,74 +46,37 @@ export function usePositions() {
       },
     ]);
 
-    // console.log("fetched positons", fetchedPositions);
-    let custodyAccounts = fetchedPositions.map(
-      (position) => position.account.custody
-    );
-    
-    // not needed to fetch always custodies
-    let fetchedCustodies =
-      await perpetual_program.account.custody.fetchMultiple(custodyAccounts);
+    // check new positions added 
+    //  Also note add new postions as soon as user takes postions or just call this function
 
-    console.log("fetched custodies", fetchedCustodies);
+    let { provider } = await getPerpetualProgramAndProvider(wallet as any);
+    const View = new ViewHelper(connection, provider );
+    const data : PositionAccount[] = [];
 
-    let organizedPositions: Record<string, Position[]> = {};
+    fetchedPositions.forEach(async (accInfo, _index) => {
 
-    fetchedPositions.forEach((position, index) => {
-      let poolAddress = position.account.pool.toString();
-      if (!organizedPositions[poolAddress]) {
-        organizedPositions[poolAddress] = [];
+      if(!positions.has(accInfo.publicKey.toBase58())){
+        addPosition(accInfo.publicKey.toBase58(), accInfo.account as unknown as Position)
       }
-      let cleanedPosition: Position = {
-        id: index.toString(),
-        positionAccountAddress: position.publicKey.toBase58(),
-        poolAddress: poolAddress,
-        collateral: position.account.collateralUsd.toNumber(),
-        entryPrice: position.account.openTime.toNumber(),
-        leverage: 0,
-        liquidationPrice: 0,
-        liquidationThreshold: 0,
-        markPrice: 0,
-        pnlDelta: 0,
-        pnlDeltaPercent: 0,
-        size: position.account.sizeUsd.toNumber(),
-        timestamp: Date.now(),
-        token: tokenAddressToTokenE(fetchedCustodies[index].mint.toString()),
-        side: position.account.side.hasOwnProperty("long")
-          ? Side.Long
-          : Side.Short,
-        value: 0,
-        valueDelta: 0,
-        valueDeltaPercentage: 0,
-      };
 
-      organizedPositions[poolAddress]!.push(cleanedPosition);
+      let posAcc =  await PositionAccount.from(View,accInfo.publicKey, accInfo.account as unknown as Position);
+      data.push(posAcc);
     });
 
-    let organizedPositionsObject: Success = {
-      status: "success",
-      data: Object.entries(organizedPositions).map(
-        ([poolAddress, positions]) => {
-          positions.forEach((position) =>
-            console.log("position", position.side)
-          );
-          return {
-            name: poolNames[poolAddress],
-            tokens: positions.map((position) => position.token),
-            positions: positions,
-          };
-        }
-      ),
-    };
-
-
-    // console.log("finalPositionObject:", organizedPositionsObject);
-    setUserPositions(organizedPositionsObject);
+    console.log(">>>>> data:",data)
+    setPositionAccounts(data);
   };
 
-  useEffect(() => {
-    fetchPositions();
-  }, [publicKey]);
 
-  return { positions, fetchPositions };
+  useEffect(() => {
+    fetchPositions()
+    const interval = setInterval(() => {
+      fetchPositions()
+      }, 60000);
+      return () => clearInterval(interval);
+  }, [publicKey])
+
+
+  // also sends fetchPositions() as a callback
+  return { positionAccounts, fetchPositions };
 }
