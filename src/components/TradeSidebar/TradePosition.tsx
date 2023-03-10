@@ -74,7 +74,7 @@ export function TradePosition(props: Props) {
     
     const positionTokenCustodyData = custodies.get(positionTokenCustody?.custodyAccount.toBase58()!);
     if(positionTokenCustodyData!== undefined && positionTokenCustody){
-      console.log("borow rate:",positionTokenCustodyData.borrowRateState.currentRate.toNumber())
+      // console.log("borow rate:",positionTokenCustodyData.borrowRateState.currentRate.toNumber())
       setBorrowRate(positionTokenCustodyData.borrowRateState.currentRate.toNumber()/ 10**(RATE_DECIMALS-2))
       const currentLongUSD = positionTokenCustodyData.longPositions.sizeUsd.toNumber() / 10**RATE_DECIMALS;
       const positiontokenPrice = allPriceStats[positionToken]?.currentPrice || 0;
@@ -87,24 +87,27 @@ export function TradePosition(props: Props) {
   }, [custodies, positionToken])
 
   useEffect(() => {
-    
+  
    ( async ()  => {
+    if(!positionAmount || !positionToken) {
+      return;
+    }
 
     let { provider } = await getPerpetualProgramAndProvider(wallet as any);
     const View = new ViewHelper(connection, provider );
     const positionTokenCustody = POOL_CONFIG.custodies.find(i => i.mintKey.toBase58()=== getTokenAddress(positionToken));
    
-    console.log("passing :",payAmount, positionAmount)
+    // console.log("passing :",payAmount, positionAmount)
     //  const entryPrice = allPriceStats[positionToken]?.currentPrice * payAmount || 0;
     const r = await View.getEntryPriceAndFee( new BN(payAmount * 10**(positionTokenCustody?.decimals!)), new BN(positionAmount * 10**(positionTokenCustody?.decimals!)) ,props.side as any , POOL_CONFIG.poolAddress, positionTokenCustody?.custodyAccount!)
-    console.log("getEntryPriceAndFee, setEntryFee: ",r.price.toNumber(), r.fee.toNumber());
+    // console.log("getEntryPriceAndFee, setEntryFee: ",r.price.toNumber(), r.fee.toNumber());
     const price = r.price.toNumber()/ 10**6; 
     setEntryPrice(price);
     setEntryFee( price* r.fee.toNumber()/ 10**((positionTokenCustody?.decimals!)))
 
      const oraclePrice = allPriceStats[positionToken]?.currentPrice  || 0; // chnage to oracle
     const emaPrice = await View.getOraclePrice( POOL_CONFIG.poolAddress, true, positionTokenCustody?.custodyAccount!)
-    console.log("getOraclePrice, emaPrice: ",oraclePrice,emaPrice.toNumber()/10**6)
+    // console.log("getOraclePrice, emaPrice: ",oraclePrice,emaPrice.toNumber()/10**6)
     if(props.side == 1){ //long
       const min = Math.min(oraclePrice,emaPrice.toNumber()/10**6)
       setExitPrice(min)
@@ -119,7 +122,7 @@ export function TradePosition(props: Props) {
   
 
   useEffect(() => {
-    console.log("leverage:",leverage)
+    // console.log("leverage:",leverage)
     let liquidationPrice = (entryPrice) * leverage;
     setLiquidationPrice(liquidationPrice);
   }, [leverage, entryPrice])

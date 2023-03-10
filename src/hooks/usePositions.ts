@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
-
-import { tokenAddressToTokenE } from "@/utils/TokenUtils";
 import { getPerpetualProgramAndProvider } from "@/utils/constants";
 import { useAnchorWallet, useConnection, useWallet } from "@solana/wallet-adapter-react";
 import {  useGlobalStore } from "@/stores/store";
 import { shallow } from "zustand/shallow";
-import { Position, Side } from "../types";
+import { Position } from "../types";
 import { ViewHelper } from "../viewHelpers";
 import { PositionAccount } from "@/lib/PositionAccount";
 
@@ -51,28 +49,34 @@ export function usePositions() {
 
     let { provider } = await getPerpetualProgramAndProvider(wallet as any);
     const View = new ViewHelper(connection, provider );
-    const data : PositionAccount[] = [];
+    let data : PositionAccount[] = [];
 
-    fetchedPositions.forEach(async (accInfo, _index) => {
-
+    for  (const accInfo of fetchedPositions) {
       if(!positions.has(accInfo.publicKey.toBase58())){
         addPosition(accInfo.publicKey.toBase58(), accInfo.account as unknown as Position)
       }
-
       let posAcc =  await PositionAccount.from(View,accInfo.publicKey, accInfo.account as unknown as Position);
       data.push(posAcc);
-    });
+    }
 
-    console.log(">>>>> data:",data)
+    console.log(">>>>> usePositions positionAccounts:",data, data.length)
     setPositionAccounts(data);
   };
 
 
+  // useEffect(() => {
+  //   (async () => {
+  //     await fetchPositions()
+  //   })()
+  // }, [publicKey])
+  
+
   useEffect(() => {
-    fetchPositions()
+    fetchPositions();
     const interval = setInterval(() => {
-      fetchPositions()
-      }, 60000);
+      console.log("timer again")
+         fetchPositions()
+      }, 30000);
       return () => clearInterval(interval);
   }, [publicKey])
 

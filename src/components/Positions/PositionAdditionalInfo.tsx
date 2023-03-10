@@ -87,8 +87,8 @@ export function PositionAdditionalInfo(props: Props) {
           <div className="text-xs text-zinc-500">PnL</div>
           <PositionValueDelta
             className="mt-0.5"
-            valueDelta={props.position.pnlUsd.toNumber()}
-            valueDeltaPercentage={(props.position.collateralUsd.toNumber() - props.position.pnlUsd.toNumber())/ 100}
+            valueDelta={props.position.pnlUsd.toNumber()/ 10**6}
+            valueDeltaPercentage={ (1 - (props.position.collateralUsd.toNumber() / props.position.collateralUsd.toNumber()))*100 }
             formatValueDelta={formatPrice}
           />
         </div>
@@ -96,7 +96,7 @@ export function PositionAdditionalInfo(props: Props) {
           <div className="text-xs text-zinc-500">Size</div>
           <div className="mt-1 flex items-center">
             <div className="text-sm text-white">
-              ${formatPrice(props.position.sizeUsd.toNumber())}
+              ${formatPrice(props.position.sizeUsd.toNumber()/ 10**6 )}
             </div>
             <button className="group ml-2">
               <EditIcon
@@ -114,7 +114,7 @@ export function PositionAdditionalInfo(props: Props) {
         <div>
           <div className="text-xs text-zinc-500">Liq. Threshold</div>
           <div className="mt-1 text-sm text-white">
-            ${formatPrice(props.position.liquidationPriceUsd.toNumber())}
+            ${formatPrice(props.position.liquidationPriceUsd.toNumber() / 10**6)}
           </div>
         </div>
       </div>

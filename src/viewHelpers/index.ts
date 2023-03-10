@@ -117,7 +117,7 @@ export class ViewHelper {
     custodyKey: PublicKey
   ): Promise<PriceAndFee> => {
     let program = new Program(IDL, PERPETUALS_PROGRAM_ID, this.provider);
-    console.log("fee payer : ",DEFAULT_PERPS_USER.publicKey.toBase58())
+    // console.log("fee payer : ",DEFAULT_PERPS_USER.publicKey.toBase58())
 
     let transaction : Transaction = await program.methods
       // @ts-ignore
@@ -153,7 +153,7 @@ export class ViewHelper {
     position: PublicKey
   ): Promise<PriceAndFee> => {
     let program = new Program(IDL, PERPETUALS_PROGRAM_ID, this.provider);
-    console.log("fee payer : ",DEFAULT_PERPS_USER.publicKey.toBase58())
+    // console.log("fee payer : ",DEFAULT_PERPS_USER.publicKey.toBase58())
 
     const transaction = await program.methods
       // @ts-ignore
@@ -187,7 +187,7 @@ export class ViewHelper {
   ): Promise<BN> => {
     let program = new Program(IDL, PERPETUALS_PROGRAM_ID, this.provider);
 
-    console.log("fee payer : ",DEFAULT_PERPS_USER.publicKey.toBase58())
+    // console.log("fee payer : ",DEFAULT_PERPS_USER.publicKey.toBase58())
     const transaction = await program.methods
       // @ts-ignore
       .getLiquidationPrice({})

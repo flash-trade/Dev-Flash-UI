@@ -84,18 +84,18 @@ export function PositionInfo(props: Props) {
       </PositionColumn>
       <PositionColumn num={3}>
         <div className="text-sm text-white">
-          ${formatPrice(props.position.sizeUsd.toNumber())}
+          ${formatPrice(props.position.sizeUsd.toNumber()/ 10**6)}
         </div>
         <PositionValueDelta
           className="mt-0.5"
           valueDelta={props.position.pnlUsd.toNumber()}
-          valueDeltaPercentage={(props.position.collateralUsd.toNumber() - props.position.pnlUsd.toNumber())/100}
+          valueDeltaPercentage={(1 - (props.position.collateralUsd.toNumber() / props.position.collateralUsd.toNumber()))*100}
         />
       </PositionColumn>
       <PositionColumn num={4}>
         <div className="flex items-center">
           <div className="text-sm text-white">
-            ${formatPrice(props.position.collateralAmount.toNumber()/ 10**(props.position.custodyConfig.decimals))}
+            ${formatPrice(props.position.collateralUsd.toNumber()/ 10**6)}
           </div>
           <button className="group ml-2">
             <EditIcon
@@ -112,7 +112,7 @@ export function PositionInfo(props: Props) {
       </PositionColumn>
       <PositionColumn num={5}>
         <div className="text-sm text-white">
-          ${formatPrice(props.position.price.toNumber())}
+          ${formatPrice(props.position.price.toNumber() / 10**6)}
         </div>
       </PositionColumn>
       {/* <PositionColumn num={6}>
@@ -123,7 +123,7 @@ export function PositionInfo(props: Props) {
       <PositionColumn num={6}>
         <div className="flex items-center justify-between pr-2">
           <div className="text-sm text-white">
-            ${formatPrice(props.position.liquidationPriceUsd.toNumber())}
+            ${formatPrice(props.position.liquidationPriceUsd.toNumber() / 10**6)}
           </div>
           <div className="flex items-center space-x-2">
             <a

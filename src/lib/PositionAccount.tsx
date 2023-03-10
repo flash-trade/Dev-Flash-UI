@@ -63,7 +63,7 @@ export class PositionAccount {
     },
   ): Promise<PositionAccount> {
 
-    console.log("obj pos:",obj)
+    // console.log("PositionAccount from:",obj)
     
     const custodyConfig  =  POOL_CONFIG.custodies.find(i => i.custodyAccount.toBase58() == obj.custody.toBase58());
     let liquidationPriceUsd = await this.getLiquidationPrice(View, obj.pool,obj.custody, publicKey);

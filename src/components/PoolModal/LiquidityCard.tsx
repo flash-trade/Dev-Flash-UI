@@ -74,6 +74,7 @@ export default function LiquidityCard(props: Props) {
       setLiqBalance(lpBalance);
 
       const mintInfo = await getMint(connection, POOL_CONFIG.lpTokenMint);
+      console.log("mintInfo:",mintInfo)
       if(mintInfo && mintInfo.supply.toString() && poolData){
         const liqratio =  (new BN(mintInfo.supply.toString())).div(poolData.lpStats.totalPoolValue).div(new BN(10 ** mintInfo.decimals));
         setLiqRatio(liqratio.toNumber());
