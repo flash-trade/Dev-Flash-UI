@@ -1,8 +1,9 @@
 import { useGlobalStore } from '@/stores/store'
 import { Custody, Pool, Position } from '@/types/index'
-import { CLUSTER, DEFAULT_POOL, getPerpetualProgramAndProvider } from '@/utils/constants'
+import { CLUSTER, DEFAULT_POOL, getPerpetualProgramAndProvider, POOL_CONFIG } from '@/utils/constants'
 import { PoolConfig } from '@/utils/PoolConfig'
-import { getMint, MintLayout } from '@solana/spl-token'
+import { checkIfAccountExists } from '@/utils/retrieveData'
+import { getAssociatedTokenAddress, getMint, MintLayout } from '@solana/spl-token'
 import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react'
 import { PublicKey } from '@solana/web3.js'
 import React, { useEffect } from 'react'
@@ -18,6 +19,9 @@ export const useHydrateStore = () => {
   const addCustody = useGlobalStore(state => state.addCustody);
   const setPoolData = useGlobalStore(state => state.setPoolData);
   const setLpMintData = useGlobalStore(state => state.setLpMintData);
+
+  // const setUserLpTokens = useGlobalStore(state => state.setUserLpTokens);
+
 
   useEffect(() => {
     const pool = PoolConfig.fromIdsByName(DEFAULT_POOL, CLUSTER);
@@ -140,6 +144,27 @@ export const useHydrateStore = () => {
     //   });
     // }
   }, [])
+
+  // useEffect(() => {
+  //   const subIds: number[] = [];
+  //   (async () => {
+  //     if(!wallet || !wallet.publicKey) return;
+
+  //     const lpTokenAccount = await getAssociatedTokenAddress(POOL_CONFIG.lpTokenMint, wallet.publicKey);
+  //     if (!(await checkIfAccountExists(lpTokenAccount, connection))) {
+  //       return 0;
+  //     } else {
+  //       let balance = await connection.getTokenAccountBalance(lpTokenAccount);
+  //       return balance.value.uiAmount;
+  //     }
+  //   })()
+
+  //   return () => {
+  //     subIds.forEach(subId => {
+  //       connection.removeAccountChangeListener(subId);
+  //     });
+  //   }
+  // }, [wallet])
 
 
   return (

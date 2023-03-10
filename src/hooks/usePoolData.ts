@@ -4,7 +4,6 @@ import {  PoolAccount } from "@/lib/PoolAccount";
 import { useGlobalStore } from "@/stores/store";
 import { PoolConfig } from "@/utils/PoolConfig";
 import { BN } from "@project-serum/anchor";
-import { Pool } from "../types";
 import { CustodyAccount } from "@/lib/CustodyAccount";
 import { PublicKey } from "@solana/web3.js";
 
@@ -103,11 +102,11 @@ export function usePoolData() {
 
   return useMemo(() => {
 
-    // if (custodies) {
-    //   return  getPoolData();
-    // } else {
+    if (custodies) {
+      return  getPoolData();
+    } else {
       return defaultData;
-    // }
+    }
 
   }, [custodies, timer])
 

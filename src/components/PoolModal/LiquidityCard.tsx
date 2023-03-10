@@ -19,6 +19,7 @@ import { useDailyPriceStats } from "@/hooks/useDailyPriceStats";
 import { POOL_CONFIG } from "@/utils/constants";
 import { usePoolData } from "@/hooks/usePoolData";
 import { BN } from "@project-serum/anchor";
+import { useGlobalStore } from "@/stores/store";
 
 interface Props {
   className?: string;
@@ -31,6 +32,9 @@ enum Tab {
 }
 
 export default function LiquidityCard(props: Props) {
+  const { wallet, publicKey, signTransaction } = useWallet();
+  const { connection } = useConnection();
+  const lpMintData = useGlobalStore(state => state.lpMintData);
 
   const poolData = usePoolData();
 
@@ -39,13 +43,11 @@ export default function LiquidityCard(props: Props) {
   const [tab, setTab] = useState(Tab.Add);
 
   const [payTokenBalance, setPayTokenBalance] = useState(0);
-  const [liqBalance, setLiqBalance] = useState(0);
+  const [userLpTokenBalance, setUserLpTokenBalance] = useState(0);
   const [liqAmount, setLiqAmount] = useState(1);
 
-  const [liqRatio, setLiqRatio] = useState(0);
+  const [userLPShare, setUserLPShare] = useState(0);
 
-  const { wallet, publicKey, signTransaction } = useWallet();
-  const { connection } = useConnection();
   let tokenList = POOL_CONFIG.tokens.map((token) => {
     return tokenAddressToTokenE(token.mintKey.toBase58());
   });
@@ -71,13 +73,15 @@ export default function LiquidityCard(props: Props) {
         connection
       );
 
-      setLiqBalance(lpBalance);
+      setUserLpTokenBalance(lpBalance);
 
-      const mintInfo = await getMint(connection, POOL_CONFIG.lpTokenMint);
-      console.log("mintInfo:",mintInfo)
-      if(mintInfo && mintInfo.supply.toString() && poolData){
-        const liqratio =  (new BN(mintInfo.supply.toString())).div(poolData.lpStats.totalPoolValue).div(new BN(10 ** mintInfo.decimals));
-        setLiqRatio(liqratio.toNumber());
+      console.log("lpMintData:",lpMintData)
+      if(lpMintData && poolData && poolData.lpStats.totalPoolValue.toString()){
+        const supply= lpMintData.supply.toString();
+        const poolAUm = poolData.lpStats.totalPoolValue.toString();
+        console.log("supply:",supply )
+        const userLPShare =  (new BN(supply)).div(poolData.lpStats.totalPoolValue).div(new BN(10 ** lpMintData.decimals));
+        setUserLPShare(userLPShare.toNumber());
       }
        
     }
@@ -91,7 +95,7 @@ export default function LiquidityCard(props: Props) {
     console.log("before change", tab === Tab.Remove, liqAmount);
     await changeLiquidity(
       wallet!,
-      publicKey,
+      publicKey!,
       signTransaction,
       connection,
       payToken,
@@ -153,7 +157,7 @@ export default function LiquidityCard(props: Props) {
               <>
                 {" "}
                 <div className="text-sm font-medium text-white">You Remove</div>
-                {publicKey && <div>Balance: {liqBalance.toFixed(2)}</div>}
+                {publicKey && <div>Balance: {userLpTokenBalance.toFixed(2)}</div>}
               </>
             )}
           </div>
@@ -164,7 +168,7 @@ export default function LiquidityCard(props: Props) {
               token={payToken!}
               onChangeAmount={setTokenAmount}
               onSelectToken={setPayToken}
-              liqRatio={liqRatio}
+              liqRatio={userLPShare}
               setLiquidity={setLiqAmount}
               tokenList={tokenList}
             />
@@ -176,10 +180,11 @@ export default function LiquidityCard(props: Props) {
             />
           )}
         </div>
+        <br/><br/>
         <div>
           <div className="flex items-center justify-between">
             <div className="text-sm font-medium text-white">You Receive</div>
-            {publicKey && <div>Balance: {liqBalance.toFixed(2)}</div>}
+            {publicKey && <div>Balance: {userLpTokenBalance.toFixed(2)}</div>}
           </div>
 
           {tab === Tab.Add ? (
@@ -191,7 +196,7 @@ export default function LiquidityCard(props: Props) {
               token={payToken!}
               onSelectToken={setPayToken}
               tokenList={tokenList}
-              liqRatio={liqRatio}
+              liqRatio={userLPShare}
             />
           )}
         </div>

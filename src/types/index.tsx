@@ -61,6 +61,7 @@ export interface Custody {
     collectedFees: FeesStats;
     volumeStats: VolumeStats;
     tradeStats: TradeStats;
+    
     longPositions: PositionStats,
     shortPositions: PositionStats,
     borrowRateState: BorrowRateState,
