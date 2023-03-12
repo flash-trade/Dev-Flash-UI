@@ -16,16 +16,16 @@ import { fetchLPBalance, fetchTokenBalance } from "@/utils/retrieveData";
 
 import { getMint } from "@solana/spl-token";
 import { useDailyPriceStats } from "@/hooks/useDailyPriceStats";
-import { POOL_CONFIG } from "@/utils/constants";
+import { getPerpetualProgramAndProvider, POOL_CONFIG } from "@/utils/constants";
 import { usePoolData } from "@/hooks/usePoolData";
 import { BN } from "@project-serum/anchor";
 import { useGlobalStore } from "@/stores/store";
 import { usePythPrices } from "@/hooks/usePythPrices";
 import { getTokenAddress, TokenE, getSymbol } from "@/utils/TokenUtils";
+import { ViewHelper } from "@/viewHelpers/index";
 
 interface Props {
   className?: string;
-  pool: PoolAccount;
 }
 
 enum Tab {
@@ -39,7 +39,6 @@ export default function LiquidityCard(props: Props) {
   const { connection } = useConnection();
   const lpMintData = useGlobalStore(state => state.lpMintData);
 
-  const poolData = usePoolData();
   const {prices} = usePythPrices();
 
   const [tokenAmount, setTokenAmount] = useState(10);
@@ -48,7 +47,7 @@ export default function LiquidityCard(props: Props) {
 
   const [payTokenBalance, setPayTokenBalance] = useState(0);
   const [userLpTokenBalance, setUserLpTokenBalance] = useState(0);
-  const [liqAmount, setLiqAmount] = useState(1);
+  const [lpTokenAmount, setLpTokenAmount] = useState(0);
 
   const [userLPShare, setUserLPShare] = useState(0);
 
@@ -66,7 +65,6 @@ export default function LiquidityCard(props: Props) {
         publicKey!,
         connection
       );
-
       setPayTokenBalance(tokenBalance);
 
       let lpBalance = await fetchLPBalance(
@@ -81,26 +79,52 @@ export default function LiquidityCard(props: Props) {
     }
   }, [payToken]);
 
+
+
+  // useEffect(() => {
+  //   console.log("poolData && poolData.lpStats.totalPoolValue.toNumber():",poolData , poolData.lpStats.totalPoolValue.toNumber())
+  //   if(tokenAmount && payToken && lpMintData && poolData && poolData.lpStats.totalPoolValue.toNumber() ){
+  //     const supply= lpMintData.supply.toString();
+  //     const poolAumBN = poolData.lpStats.totalPoolValue;
+  //     console.log("supply:",supply )
+  //     const depositUsd = tokenAmount * (prices.get(getSymbol(payToken)) ?? 0);
+  //     console.log("poolAumBN:",poolAumBN.toString())
+  //     const shareBN = (new BN(depositUsd)).div(poolAumBN);
+  //     const userLPShare =  (new BN(supply)).mul(shareBN).div(new BN(10 ** lpMintData.decimals));
+  //     setUserLPShare(userLPShare.toNumber());
+  //   }
+
+  // }, [tokenAmount])
+  
   useEffect(() => {
-
-    
-    if(tokenAmount && payToken && lpMintData && poolData && poolData.lpStats.totalPoolValue.toString()){
+    (async () => {
+      let { provider } = await getPerpetualProgramAndProvider(wallet as any);
+      const View = new ViewHelper(connection, provider );
+  
+      const poolAUM = await View.getAssetsUnderManagement( POOL_CONFIG.poolAddress);
       const supply= lpMintData.supply.toString();
-      const poolAumBN = poolData.lpStats.totalPoolValue;
-      console.log("supply:",supply )
-      const depositUsd = tokenAmount * (prices.get(getSymbol(payToken)) ?? 0);
-      const shareBN = (new BN(depositUsd)).div(poolAumBN);
-      const userLPShare =  (new BN(supply)).mul(shareBN).div(new BN(10 ** lpMintData.decimals));
-      setUserLPShare(userLPShare.toNumber());
-    }
+      console.log("supply, poolAUM, :",supply /10 ** (lpMintData.decimals) ,poolAUM.toNumber())
+      console.log("tokenAmount,prices", tokenAmount, prices, payToken,  prices.get(payToken!))
+      if(poolAUM.toNumber() && lpMintData){
+          const supply= lpMintData.supply.toString();
+          const depositUsd = tokenAmount * (prices.get(payToken!) ?? 0);
+          console.log("depositUsd , AUM:",depositUsd, poolAUM.toNumber())
+          const shareBN = (new BN(depositUsd)).mul(new BN(10**6)).div(poolAUM);
+          console.log("shareBN:",shareBN.toNumber())
+          setUserLPShare(shareBN.toNumber()/10**6);
 
-  }, [tokenAmount])
+          const userLPtokensRecieve =  (new BN(supply)).mul(shareBN).div(new BN(10 ** (lpMintData.decimals)));
+          console.log("userLPShare.toNumber, supply:",userLPtokensRecieve.toNumber()/10**6, supply/ 10 ** (lpMintData.decimals))
+          setLpTokenAmount(userLPtokensRecieve.toNumber()/10**6)
+       }
+    })()
+   
+  }, [tokenAmount, prices])
   
 
 
-
   async function changeLiq() {
-    console.log("before change", tab === Tab.Remove, liqAmount);
+    console.log("before change", tab === Tab.Remove, lpTokenAmount);
     await changeLiquidity(
       wallet!,
       publicKey!,
@@ -108,7 +132,7 @@ export default function LiquidityCard(props: Props) {
       connection,
       payToken,
       tab === Tab.Add ? tokenAmount : 0,
-      tab === Tab.Remove ? liqAmount : 0
+      tab === Tab.Remove ? lpTokenAmount : 0
     );
 
     // router.reload(window.location.pathname);
@@ -127,7 +151,7 @@ export default function LiquidityCard(props: Props) {
           <SidebarTab
             selected={tab === Tab.Add}
             onClick={() => {
-              setLiqAmount(0);
+              setLpTokenAmount(0);
               setTokenAmount(0);
               setTab(Tab.Add);
             }}
@@ -138,7 +162,7 @@ export default function LiquidityCard(props: Props) {
           <SidebarTab
             selected={tab === Tab.Remove}
             onClick={() => {
-              setLiqAmount(0);
+              setLpTokenAmount(0);
               setTokenAmount(0);
               setTab(Tab.Remove);
             }}
@@ -177,14 +201,14 @@ export default function LiquidityCard(props: Props) {
               onChangeAmount={setTokenAmount}
               onSelectToken={setPayToken}
               liqRatio={userLPShare}
-              setLiquidity={setLiqAmount}
+              setLiquidity={setLpTokenAmount}
               tokenList={tokenList}
             />
           ) : (
             <LpSelector
               className="mt-2"
-              amount={liqAmount}
-              onChangeAmount={setLiqAmount}
+              amount={lpTokenAmount}
+              onChangeAmount={setLpTokenAmount}
             />
           )}
         </div>
@@ -196,7 +220,7 @@ export default function LiquidityCard(props: Props) {
           </div>
 
           {tab === Tab.Add ? (
-            <LpSelector className="mt-2" amount={liqAmount} />
+            <LpSelector className="mt-2" amount={lpTokenAmount} />
           ) : (
             <TokenSelector
               className="mt-2"

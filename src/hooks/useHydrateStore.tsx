@@ -3,9 +3,10 @@ import { Custody, Pool, Position } from '@/types/index'
 import { CLUSTER, DEFAULT_POOL, getPerpetualProgramAndProvider, POOL_CONFIG } from '@/utils/constants'
 import { PoolConfig } from '@/utils/PoolConfig'
 import { checkIfAccountExists } from '@/utils/retrieveData'
-import { getAssociatedTokenAddress, getMint, MintLayout } from '@solana/spl-token'
+import { TokenAccount } from '@metaplex-foundation/js'
+import { AccountLayout, getAssociatedTokenAddress, getMint, Mint, MintLayout } from '@solana/spl-token'
 import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react'
-import { PublicKey } from '@solana/web3.js'
+import { PublicKey, TokenAccountBalancePair } from '@solana/web3.js'
 import React, { useEffect } from 'react'
 
 
@@ -17,10 +18,10 @@ export const useHydrateStore = () => {
   const addPosition = useGlobalStore(state => state.addPosition);
 
   const addCustody = useGlobalStore(state => state.addCustody);
-  const setPoolData = useGlobalStore(state => state.setPoolData);
+  const setPoolData = useGlobalStore(state => state.setPool);
   const setLpMintData = useGlobalStore(state => state.setLpMintData);
 
-  // const setUserLpTokens = useGlobalStore(state => state.setUserLpTokens);
+  const setUserLpTokensBalance = useGlobalStore(state => state.setUserLpTokensBalance);
 
 
   useEffect(() => {
@@ -145,26 +146,40 @@ export const useHydrateStore = () => {
     // }
   }, [])
 
-  // useEffect(() => {
-  //   const subIds: number[] = [];
-  //   (async () => {
-  //     if(!wallet || !wallet.publicKey) return;
+  useEffect(() => {
+    const subIds: number[] = [];
+    (async () => {
+      if(!wallet || !wallet.publicKey) return;
 
-  //     const lpTokenAccount = await getAssociatedTokenAddress(POOL_CONFIG.lpTokenMint, wallet.publicKey);
-  //     if (!(await checkIfAccountExists(lpTokenAccount, connection))) {
-  //       return 0;
-  //     } else {
-  //       let balance = await connection.getTokenAccountBalance(lpTokenAccount);
-  //       return balance.value.uiAmount;
-  //     }
-  //   })()
+      // let { perpetual_program } = await getPerpetualProgramAndProvider();
 
-  //   return () => {
-  //     subIds.forEach(subId => {
-  //       connection.removeAccountChangeListener(subId);
-  //     });
-  //   }
-  // }, [wallet])
+      const lpTokenAccount = await getAssociatedTokenAddress(POOL_CONFIG.lpTokenMint, wallet.publicKey);
+      if (!(await checkIfAccountExists(lpTokenAccount, connection))) {
+        setUserLpTokensBalance(0);
+      } else {
+        let balance = await connection.getTokenAccountBalance(lpTokenAccount);
+        setUserLpTokensBalance(balance.value.uiAmount!);
+
+        const subId = connection.onAccountChange(lpTokenAccount, (accountInfo) => {
+          // const data = perpetual_program.coder.accounts.decode<TokenAccountBalancePair>('TokenAmount', accountInfo.data);
+          // setUserLpTokensBalance(balance.value.uiAmount!);
+          // need to REDO here ????? 
+          // let balance = await connection.getTokenAccountBalance(lpTokenAccount);
+          const decodedTokenAccountInfo = AccountLayout.decode(accountInfo!.data);
+          setUserLpTokensBalance(Number(decodedTokenAccountInfo.amount.toString()));
+
+        })
+        subIds.push(subId)
+
+      }
+    })()
+
+    return () => {
+      subIds.forEach(subId => {
+        connection.removeAccountChangeListener(subId);
+      });
+    }
+  }, [wallet])
 
 
   return (

@@ -12,9 +12,6 @@ import { ChevronLeft } from "@carbon/icons-react";
 
 export default function PoolPage() {
 
-  const { pool } = usePoolData();
-
-
   return (
     <PoolLayout className="text-white">
       <div>
@@ -22,10 +19,10 @@ export default function PoolPage() {
         <TitleHeader iconClassName="w-10 h-10" className="mb-8" />
       </div>
       <div className="flex w-full flex-col">
-        <PoolStats pool={pool!} className="mb-8" />
-        <SinglePoolTokens pool={pool!} />
+        <PoolStats className="mb-8" />
+        <SinglePoolTokens />
       </div>
-      <LiquidityCard pool={pool} />
+      <LiquidityCard />
     </PoolLayout>
   );
 }

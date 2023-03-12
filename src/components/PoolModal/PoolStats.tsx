@@ -2,16 +2,16 @@ import { useDailyPriceStats } from "@/hooks/useDailyPriceStats";
 import { Pool, PoolAccount } from "@/lib/PoolAccount";
 import { getAssociatedTokenAddress } from "@solana/spl-token";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
-import { checkIfAccountExists } from "@/utils/retrieveData";
+import { checkIfAccountExists, fetchLPBalance } from "@/utils/retrieveData";
 import { useUserData } from "@/hooks/useUserData";
 import { POOL_CONFIG } from "@/utils/constants";
 import { usePoolData } from "@/hooks/usePoolData";
 import { BN } from "@project-serum/anchor";
+import { useGlobalStore } from "@/stores/store";
 
 interface Props {
-  pool: Pool;
   className?: string;
 }
 
@@ -20,34 +20,49 @@ export default function PoolStats(props: Props) {
 
   const poolData = usePoolData();
 
+  const userLpTokensBalance = useGlobalStore( state => state.userLpTokensBalance);
 
-  const { userLpTokens } = useUserData();
+  const { wallet, publicKey, signTransaction } = useWallet();
+  const { connection } = useConnection();
 
-  function getLiquidityBalance(): number {
-    let userLpBalance = userLpTokens[POOL_CONFIG.poolAddress.toString()] ?? 0;
+  const [liquidityBalanceValueUsd, setLiquidityBalanceValueUsd] = useState(0);
+  const [liquidityShare, setLiquidityShare] = useState(0);
+
+
+   function getLiquidityBalanceValueUsd() {
+
     let lpSupply = poolData.lpStats.lpTokenSupply.div(new BN(10 ** POOL_CONFIG.lpDecimals));
 
-    let userLiquidity = (userLpBalance / lpSupply.toNumber()) * poolData.lpStats.totalPoolValue.toNumber();
+    console.log("poolData.lpStats.totalPoolValue.toNumber():",poolData.lpStats.totalPoolValue.toNumber())
+    let userLiquidity = ((userLpTokensBalance / lpSupply.toNumber()) * poolData.lpStats.totalPoolValue.toNumber())/ 10**6;
 
     if (Number.isNaN(userLiquidity)) {
-      return 0;
+      return;
     }
 
-    return userLiquidity;
+    setLiquidityBalanceValueUsd(userLiquidity);
   }
 
-  function getLiquidityShare(): number {
-    let userLpBalance = userLpTokens[POOL_CONFIG.poolAddress.toString()] ?? 0;
+   function getLiquidityShare() {
+    
     let lpSupply = poolData.lpStats.lpTokenSupply.div(new BN(10 ** POOL_CONFIG.lpDecimals));
 
-
-    let userShare = (userLpBalance / lpSupply.toNumber()) * 100;
+    let userShare = (userLpTokensBalance / lpSupply.toNumber()) * 100;
 
     if (Number.isNaN(userShare)) {
-      return 0;
+      return;
     }
-    return userShare;
+    setLiquidityShare(userShare);
   }
+
+  useEffect(() => {
+    if(userLpTokensBalance){
+      getLiquidityBalanceValueUsd();
+      getLiquidityShare();
+    }
+   
+  }, [userLpTokensBalance, poolData])
+  
 
   if (Object.keys(stats).length === 0) {
     return <>Loading stats</>;
@@ -89,12 +104,12 @@ export default function PoolStats(props: Props) {
             value: `$${poolData.poolStats.totalFees.toString()}`,
           },
           {
-            label: "Your Liquidity",
-            value: `$${getLiquidityBalance().toFixed(2)}`,
+            label: "Your Liquidity Value",
+            value: `$${liquidityBalanceValueUsd.toFixed(2)}`,
           },
           {
             label: "Your Share",
-            value: `${getLiquidityShare().toFixed(2)}%`,
+            value: `${liquidityShare.toFixed(2)}%`,
           },
         ].map(({ label, value }, i) => (
           <div

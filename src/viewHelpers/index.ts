@@ -3,6 +3,7 @@ import {
   DEFAULT_PERPS_USER,
   DEFAULT_POOL,
   PERPETUALS_PROGRAM_ID,
+  POOL_CONFIG,
 } from "@/utils/constants";
 import { AnchorProvider, BN, Program } from "@project-serum/anchor";
 import {
@@ -92,6 +93,22 @@ export class ViewHelper {
     poolKey: PublicKey,
   ): Promise<BN> => {
     let program = new Program(IDL, PERPETUALS_PROGRAM_ID, this.provider);
+    const custodies = POOL_CONFIG.custodies;
+    let custodyMetas = [];
+    for (const token of custodies) {
+      custodyMetas.push({
+        isSigner: false,
+        isWritable: false,
+        pubkey: token.custodyAccount,
+      });
+    }
+    for (const custody of custodies) {
+      custodyMetas.push({
+        isSigner: false,
+        isWritable: false,
+        pubkey: custody.oracleAddress,
+      });
+    }
 
     const transaction = await program.methods
       // @ts-ignore
@@ -100,6 +117,7 @@ export class ViewHelper {
         perpetuals: this.poolConfig.perpetuals,
         pool: poolKey,
       })
+      .remainingAccounts([...custodyMetas])
       .transaction();
 
     const result = await this.simulateTransaction(transaction);

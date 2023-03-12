@@ -10,7 +10,6 @@ import { usePoolData } from "@/hooks/usePoolData";
 
 interface Props {
   className?: string;
-  pool: Pool;
 }
 
 function TableHeader() {
@@ -30,7 +29,7 @@ function TableHeader() {
 
 export default function SinglePoolTokens(props: Props) {
   const stats = useDailyPriceStats();
-  // const poolData = usePoolData();
+  const poolData = usePoolData();
 
   if (Object.keys(stats).length === 0) {
     return <>Loading stats</>;
@@ -91,7 +90,7 @@ export default function SinglePoolTokens(props: Props) {
                     <td>{stats[token].currentPrice.toFixed(2)}</td>
                     <td>
                       {/* {(
-                        Number(custody.amount) /
+                        Number(poolData.poolStats) /
                         10 ** custody.decimals
                       ).toFixed(2)} */}
                     </td>

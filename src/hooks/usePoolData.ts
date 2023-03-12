@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { CLUSTER, DEFAULT_POOL } from "@/utils/constants";
 import {  PoolAccount } from "@/lib/PoolAccount";
 import { useGlobalStore } from "@/stores/store";
@@ -65,50 +65,67 @@ const defaultData : ViewPoolData = {
 
 export function usePoolData() {
 
-  const [timer, setTimer] = useState(0);
+  // const [timer, setTimer] = useState(0);
 
   const custodies = useGlobalStore(state => state.custodies);
-  const poolData = useGlobalStore(state => state.poolData);
+  const pool = useGlobalStore(state => state.pool);
   const lpMintData = useGlobalStore(state => state.lpMintData);
 
   const {prices} = usePythPrices();
 
+  const [poolData, setPoolData] = useState<ViewPoolData>(defaultData)
 
-  const getPoolData =  () : ViewPoolData => {
+
+  const getPoolData = () => {
     const poolConfig = PoolConfig.fromIdsByName(DEFAULT_POOL, CLUSTER);
-    if(!poolData || !lpMintData || !prices) return defaultData;
+    if(!pool || !lpMintData || !prices || !custodies) {
+      return ;
+    }
     // const pool = new PoolAccount(poolConfig, poolData, lpMintData, Array.from([custodies.keys(), custodies.values()]).map(t => CustodyAccount.from(new PublicKey(t), {...(custodies.get(t))}))
-    const pool = new PoolAccount(
+    const poolAccount = new PoolAccount(
       poolConfig, 
-      poolData, 
+      pool, 
       lpMintData,
       Array.from(custodies, ([key, value]) => CustodyAccount.from(new PublicKey(key), {...value}))
     )
-    return {
-      oiLong: pool.getOiLongUI(),
-      oiShort: pool.getOiShortUI(),
-      poolStats: pool.getPoolStats(),
-      custodyDetails: pool.getCustodyDetails(prices),
-      lpStats : pool.getLpStats(prices)
+    const r : ViewPoolData =  {
+      oiLong: poolAccount.getOiLongUI(),
+      oiShort: poolAccount.getOiShortUI(),
+      poolStats: poolAccount.getPoolStats(),
+      custodyDetails: poolAccount.getCustodyDetails(prices),
+      lpStats : poolAccount.getLpStats(prices)
     }
+    console.log("usePooldata:",r)
+    setPoolData(r);
   }
 
 
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setTimer(Date.now())
+  //   }, 60000);
+  //   return () => clearInterval(interval);
+  // }, []);
+
   useEffect(() => {
+    getPoolData();
     const interval = setInterval(() => {
-      setTimer(Date.now())
-    }, 60000);
-    return () => clearInterval(interval);
-  }, []);
+      console.log(" getPoolData timer again")
+      getPoolData()
+      }, 30000);
+      return () => clearInterval(interval);
+  }, [custodies, prices])
 
-  return useMemo(() => {
+  // return useMemo(() => {
 
-    if (custodies) {
-      return  getPoolData();
-    } else {
-      return defaultData;
-    }
+  //   if (custodies) {
+  //     return  getPoolData();
+  //   } else {
+  //     return defaultData;
+  //   }
 
-  }, [custodies, timer])
+  // }, [custodies, timer , prices])
+
+  return poolData;
 
 }

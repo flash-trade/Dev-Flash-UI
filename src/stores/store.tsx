@@ -10,13 +10,13 @@ interface StoreState {
   removePosition: (positionPk: string) => void;
 
 
-  // userLpTokens: Record<string, number>;
-  // setUserLpTokens: (lpTokens: Record<string, number>) => void;
+  userLpTokensBalance: number;
+  setUserLpTokensBalance: (lpTokens: number) => void;
 
-  poolData?: Pool;
-  setPoolData: (pool: Pool) => void
-  lpMintData?: Mint;
-  setLpMintData: (mint: Mint) => void 
+  pool?: Pool;
+  setPool: (pool: Pool) => void
+  lpMintData?: any;
+  setLpMintData: (mint: any) => void 
 
   custodies: Map<string, Custody>;
   setCustodies: (custodies: Map<string, Custody>) => void;
@@ -39,15 +39,14 @@ export const useGlobalStore = create<StoreState>()(
       return { positions: positions }
     }),
     
-    // userLpTokens: {},
-    // setUserLpTokens: (lpTokens: Record<string, number>) =>
-    //   set({ userLpTokens: lpTokens }),
+    userLpTokensBalance: 0,
+    setUserLpTokensBalance: (lpTokens : number) => set({ userLpTokensBalance: lpTokens }),
 
-    poolData: undefined,
-    setPoolData: (poolData: Pool) => set({ poolData }),
+    pool: undefined,
+    setPool: (pool: Pool) => set({ pool: pool }),
    
     lpMintData: undefined,
-    setLpMintData: (lpMintData: Mint) => set({ lpMintData }),
+    setLpMintData: (lpMintData: any) => set({ lpMintData }),
 
     custodies: new Map<string, Custody>(),
     setCustodies: (custodies: Map<string, Custody>) => set({ custodies }),
@@ -62,7 +61,10 @@ export const useGlobalStore = create<StoreState>()(
     {
       serialize: {
         options: {
-          map: true
+          map: true,
+          set : true,
+          function : true,
+          date : true
         }
       } as any
     }

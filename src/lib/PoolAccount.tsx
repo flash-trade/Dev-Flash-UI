@@ -43,8 +43,9 @@ export class PoolAccount {
         if (custodyData.isStable) {  
           stableCoinAmount.add(custodyData.assets.owned)
         }
-        const priceBN = new BN(prices.get(custody.symbol))
-        const custodyValue = priceBN.mul(custodyData.assets.collateral)
+        const priceBN = new BN(prices.get(custody.symbol)* 10**6); // so always keep prices with 6 decimals 
+        const custodyValue = priceBN.mul(custodyData.assets.collateral);
+        console.log("priceBN, custodyValue",priceBN.toString(),custodyValue.toString(), custody.symbol)
         totalPoolValueUsd.add(custodyValue)
       }
     }
