@@ -2,9 +2,9 @@ import { twMerge } from "tailwind-merge";
 import ChevronRightIcon from "@carbon/icons-react/lib/ChevronRight";
 import { cloneElement, useState } from "react";
 
-import { useDailyPriceStats } from "@/hooks/useDailyPriceStats";
 import { TokenE, getTokenEIcon } from "@/utils/TokenUtils";
 import { TokenSelectorList } from "./TokenSelectorList";
+import { usePythPrices } from "@/hooks/usePythPrices";
 
 function formatNumber(num: number) {
   const formatter = Intl.NumberFormat("en", {
@@ -30,7 +30,8 @@ interface Props {
 }
 
 export function TokenSelector(props: Props) {
-  const stats = useDailyPriceStats();
+  const { prices } = usePythPrices();
+
   const [selectorOpen, setSelectorOpen] = useState(false);
 
   // check if props.token is undefined
@@ -115,16 +116,16 @@ export function TokenSelector(props: Props) {
                 Number(
                   (
                     Number(text) *
-                    stats[props.token].currentPrice *
+                    (prices.get(props.token) ?? 0) *
                     props.liqRatio
                   ).toFixed(2)
                 )
               );
             }}
           />
-          {!!stats[props.token]?.currentPrice && (
+          {!!prices.get(props.token) && (
             <div className="mt-0.5 text-right text-xs text-zinc-500">
-              {formatNumber(props.amount * stats[props.token].currentPrice)}
+              {formatNumber(props.amount * (prices.get(props.token) ?? 0))}
             </div>
           )}
         </div>

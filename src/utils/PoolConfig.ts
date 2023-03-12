@@ -13,6 +13,14 @@ export interface CustodyConfig {
   isStable: boolean,
   oracleAddress: PublicKey;
 }
+type Token = {
+  symbol: string;
+  mintKey: PublicKey;
+  decimals: number;
+  isStable: boolean;
+  pythTicker: string;
+};
+
 export class PoolConfig {
   constructor(
     public programId: PublicKey,
@@ -28,13 +36,7 @@ export class PoolConfig {
     // public multisigAccountKey: string,
     // public transferAuthorityAccountKey: string,
 
-    public tokens: {
-      symbol: string;
-      mintKey: PublicKey;
-      decimals: number;
-      isStable: boolean;
-      pythTicker : string;
-    }[],
+    public tokens: Token[],
 
     public custodies: CustodyConfig[],
   ) { }
@@ -74,6 +76,18 @@ export class PoolConfig {
   static getCustodyConfig(custodyAccountPk: Address) {
     // console.log('custodyAccountPk :>> ', custodyAccountPk.toString());
     return this.fromIdsByName(DEFAULT_POOL, CLUSTER).custodies.find(f => f.custodyAccount.toBase58() === custodyAccountPk.toString())
+  }
+
+  static getTokensInPool(name: string, cluster: Cluster): Token[] {
+    const poolConfig = poolConfigs.pools.find((pool) => pool['poolName'] === name && cluster === pool['cluster']);
+    if (!poolConfig) throw new Error(`No pool config ${name} found in Ids!`);
+    const tokens = poolConfig['tokens'].map(i => {
+      return {
+        ...i,
+        mintKey: new PublicKey(i.mintKey)
+      }
+    })
+    return tokens
   }
 
   static fromIdsByName(name: string, cluster: Cluster): PoolConfig {

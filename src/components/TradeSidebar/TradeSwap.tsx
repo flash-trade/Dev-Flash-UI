@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 
-import { useDailyPriceStats } from "@/hooks/useDailyPriceStats";
 import { getTokenAddress, TokenE } from "@/utils/TokenUtils";
 
 import { TokenSelector } from "../TokenSelector";
@@ -12,6 +11,7 @@ import { BN } from "@project-serum/anchor";
 import { CLUSTER, DEFAULT_POOL, getPerpetualProgramAndProvider } from "@/utils/constants";
 import { ViewHelper } from "@/viewHelpers/index";
 import { PoolConfig } from "@/utils/PoolConfig";
+import { usePythPrices } from "@/hooks/usePythPrices";
 
 
 interface Props {
@@ -26,7 +26,7 @@ export function TradeSwap(props: Props) {
 
   const [swapFeeUSD, setSwapFeeUSD] = useState(0);
 
-  const allPriceStats = useDailyPriceStats();
+  const { prices } = usePythPrices()
 
   const { connection } = useConnection();
   const { publicKey, signTransaction, wallet } = useWallet();
@@ -37,8 +37,8 @@ export function TradeSwap(props: Props) {
       return;
     }
     (async () => {
-      const payTokenPrice = allPriceStats[payToken]?.currentPrice || 0;
-      const receiveTokenPrice = allPriceStats[receiveToken]?.currentPrice || 0;
+      const payTokenPrice = prices.get(payToken) || 0;
+      const receiveTokenPrice = prices.get(receiveToken) || 0;
       console.log("payTokenPrice, receiveTokenPrice:",payTokenPrice,receiveTokenPrice)
       // const conversionRatio = payTokenPrice / receiveTokenPrice;
       // const receiveAmount = payAmount * conversionRatio;
@@ -128,9 +128,9 @@ export function TradeSwap(props: Props) {
         className="mt-4"
         fees={swapFeeUSD}
         payToken={payToken}
-        payTokenPrice={allPriceStats[payToken]?.currentPrice || 0}
+        payTokenPrice={prices.get(payToken) || 0}
         receiveToken={receiveToken}
-        receiveTokenPrice={allPriceStats[receiveToken]?.currentPrice || 0}
+        receiveTokenPrice={prices.get(receiveToken) || 0}
       />
     </div>
   );
