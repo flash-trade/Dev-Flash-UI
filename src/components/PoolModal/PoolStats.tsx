@@ -22,8 +22,6 @@ export default function PoolStats(props: Props) {
 
   const userLpTokensBalance = useGlobalStore( state => state.userLpTokensBalance);
 
-  const { wallet, publicKey, signTransaction } = useWallet();
-  const { connection } = useConnection();
 
   const [liquidityBalanceValueUsd, setLiquidityBalanceValueUsd] = useState(0);
   const [liquidityShare, setLiquidityShare] = useState(0);

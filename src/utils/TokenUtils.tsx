@@ -80,6 +80,29 @@ export function getTokenELabel(token: TokenE) {
   }
 }
 
+export function getTokenSymbol(token: TokenE) {
+  switch (token) {
+    case TokenE.Bonk:
+      return "BONK";
+    case TokenE.ORCA:
+      return "ORCA";
+    case TokenE.RAY:
+      return "RAY";
+    case TokenE.SOL:
+      return "SOL";
+    case TokenE.USDC:
+      return "USDC";
+    case TokenE.USDT:
+      return "USDT";
+    case TokenE.mSOL:
+      return "MSOL";
+    case TokenE.stSOL:
+      return "STSOL";
+    case TokenE.TEST:
+      return "BTC";
+  }
+}
+
 export function getSymbol(token: TokenE) {
   switch (token) {
     case TokenE.Bonk:

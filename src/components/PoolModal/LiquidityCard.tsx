@@ -11,17 +11,12 @@ import Add from "@carbon/icons-react/lib/Add";
 import Subtract from "@carbon/icons-react/lib/Subtract";
 import { LpSelector } from "./LpSelector";
 import { changeLiquidity } from "src/actions/changeLiquidity";
-import {  PoolAccount } from "@/lib/PoolAccount";
 import { fetchLPBalance, fetchTokenBalance } from "@/utils/retrieveData";
 
-import { getMint } from "@solana/spl-token";
-import { useDailyPriceStats } from "@/hooks/useDailyPriceStats";
 import { getPerpetualProgramAndProvider, POOL_CONFIG } from "@/utils/constants";
-import { usePoolData } from "@/hooks/usePoolData";
 import { BN } from "@project-serum/anchor";
 import { useGlobalStore } from "@/stores/store";
 import { usePythPrices } from "@/hooks/usePythPrices";
-import { getTokenAddress, TokenE, getSymbol } from "@/utils/TokenUtils";
 import { ViewHelper } from "@/viewHelpers/index";
 
 interface Props {
@@ -102,10 +97,11 @@ export default function LiquidityCard(props: Props) {
       const View = new ViewHelper(connection, provider );
   
       const poolAUM = await View.getAssetsUnderManagement( POOL_CONFIG.poolAddress);
-      const supply= lpMintData.supply.toString();
-      console.log("supply, poolAUM, :",supply /10 ** (lpMintData.decimals) ,poolAUM.toNumber())
-      console.log("tokenAmount,prices", tokenAmount, prices, payToken,  prices.get(payToken!))
+ 
       if(poolAUM.toNumber() && lpMintData){
+        console.log("supply, poolAUM, :",lpMintData, lpMintData?.supply?.toString() /10 ** (lpMintData.decimals) ,poolAUM.toNumber())
+        console.log("tokenAmount,prices", tokenAmount, prices, payToken,  prices.get(payToken!))
+
           const supply= lpMintData.supply.toString();
           const depositUsd = tokenAmount * (prices.get(payToken!) ?? 0);
           console.log("depositUsd , AUM:",depositUsd, poolAUM.toNumber())
@@ -119,7 +115,7 @@ export default function LiquidityCard(props: Props) {
        }
     })()
    
-  }, [tokenAmount, prices])
+  }, [tokenAmount, prices, lpMintData])
   
 
 
@@ -128,9 +124,9 @@ export default function LiquidityCard(props: Props) {
     await changeLiquidity(
       wallet!,
       publicKey!,
-      signTransaction,
+      signTransaction as any,
       connection,
-      payToken,
+      payToken!,
       tab === Tab.Add ? tokenAmount : 0,
       tab === Tab.Remove ? lpTokenAmount : 0
     );

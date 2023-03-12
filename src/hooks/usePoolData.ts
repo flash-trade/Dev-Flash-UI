@@ -24,6 +24,8 @@ export interface ViewPoolData {
     targetWeight: BN,
     currentWeight: BN,
     utilization: BN,
+    assetsAmountUi : string,
+    totalUsdAmountUi : string,
   }[],
   lpStats : {
     lpTokenSupply : BN,
@@ -51,6 +53,8 @@ const defaultData : ViewPoolData = {
     targetWeight: ZERO_BN,
     currentWeight: ZERO_BN,
     utilization: ZERO_BN,
+    assetsAmountUi : '0',
+    totalUsdAmountUi : '0'
   }],
   lpStats : {
     lpTokenSupply : ZERO_BN,
@@ -88,12 +92,14 @@ export function usePoolData() {
       lpMintData,
       Array.from(custodies, ([key, value]) => CustodyAccount.from(new PublicKey(key), {...value}))
     )
+    const lpStats = poolAccount.getLpStats(prices);
+    const custodyDetails = poolAccount.getCustodyDetails(prices);
     const r : ViewPoolData =  {
       oiLong: poolAccount.getOiLongUI(),
       oiShort: poolAccount.getOiShortUI(),
       poolStats: poolAccount.getPoolStats(),
-      custodyDetails: poolAccount.getCustodyDetails(prices),
-      lpStats : poolAccount.getLpStats(prices)
+      lpStats : lpStats,
+      custodyDetails: custodyDetails,
     }
     console.log("usePooldata:",r)
     setPoolData(r);

@@ -4,10 +4,7 @@ import { TitleHeader } from "@/components/Molecules/PoolHeaders/TitleHeader";
 import LiquidityCard from "@/components/PoolModal/LiquidityCard";
 import PoolStats from "@/components/PoolModal/PoolStats";
 import SinglePoolTokens from "@/components/PoolModal/SinglePoolTokens";
-import { usePoolData } from "@/hooks/usePoolData";
-import { ChevronLeft } from "@carbon/icons-react";
-
-
+import React, { useEffect } from "react";
 
 
 export default function PoolPage() {
@@ -22,7 +19,7 @@ export default function PoolPage() {
         <PoolStats className="mb-8" />
         <SinglePoolTokens />
       </div>
-      <LiquidityCard />
+      <LiquidityCard  />
     </PoolLayout>
   );
 }
