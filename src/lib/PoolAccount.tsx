@@ -11,12 +11,14 @@ export class PoolAccount {
   public poolData : Pool;
   public lpTokenInfo : Mint;
   public custodies : CustodyAccount[];
+  public totalPoolValueUsd : BN;
   
   constructor(poolConfig: PoolConfig, poolData : Pool, lpTokenInfo : Mint, custodies : CustodyAccount[]) {
    this.poolConfig = poolConfig;
    this.poolData = poolData;
    this.lpTokenInfo = lpTokenInfo;
    this.custodies = custodies;
+   this.totalPoolValueUsd = new BN(-1); // -1 meaning unset
   }
 
   loadCustodies(custodies : CustodyAccount[]){
@@ -31,11 +33,10 @@ export class PoolAccount {
     this.lpTokenInfo = lpTokenInfo
   }
 
-  getLpStats(prices : any){
+   getLpStats(prices : any){
 
      let stableCoinAmount = new BN(0);
      let totalPoolValueUsd = new BN(0);
-     let aum = this.poolData.aumUsd;
 
     for (const custody of this.poolConfig.custodies) {
       const custodyData = this.custodies.find(t => t.mint.toBase58() === custody.mintKey.toBase58())
@@ -44,12 +45,19 @@ export class PoolAccount {
           stableCoinAmount.add(custodyData.assets.owned)
         }
         const priceBN = new BN(prices.get(custody.symbol)* 10**6); // so always keep prices with 6 decimals 
-        const custodyValue = priceBN.mul(custodyData.assets.collateral);
-        console.log("priceBN, custodyValue",priceBN.toString(),custodyValue.toString(), custody.symbol)
+        const custodyValue = priceBN.mul(custodyData.assets.owned);
+        console.log("priceBN,amt ,custodyValue",priceBN.toString(),custodyData.assets.owned.toString() ,custodyValue.toString(), custody.symbol)
         totalPoolValueUsd.add(custodyValue)
       }
     }
-    // totalAUM/supply
+    
+    console.log("totalPoolValueUsd.toNumber():",totalPoolValueUsd.toString())
+    console.log("stableCoinAmount.toNumber():",stableCoinAmount.toString())
+
+    if(this.lpTokenInfo.supply.toString() =='0' || totalPoolValueUsd.toString()=='0'){
+      throw "supply or amt cannot be zero";
+    }
+    this.totalPoolValueUsd = totalPoolValueUsd;
     const lpPrice = totalPoolValueUsd.div(new BN(this.lpTokenInfo.supply.toString()))
     
      return  {
@@ -57,7 +65,7 @@ export class PoolAccount {
        decimals : this.poolConfig.lpDecimals,
        totalPoolValue : totalPoolValueUsd,
        price : lpPrice,
-       stableCoinPercentage : stableCoinAmount.mul(new BN(4)).div(aum),
+       stableCoinPercentage : stableCoinAmount.mul(new BN(4)).div(totalPoolValueUsd),
        marketCap : lpPrice.mul(new BN(this.lpTokenInfo.supply.toString())),
       // totalStaked : BN,
      }
@@ -84,17 +92,24 @@ export class PoolAccount {
     const custodyDetails = [];
     for (const custody of this.poolConfig.custodies) {
       const token = this.poolData.tokens.find(t => t.custody.toBase58() === custody.custodyAccount.toBase58());
-      // const custodyData = this.custodies.find(f => f.)
-      // (custody.owned * price)/pool.aumUsd
+     
       const custodyData = this.custodies.find(t => t.mint.toBase58() === custody.mintKey.toBase58())
+      const priceBN = new BN(prices.get(custody.symbol)* 10**6); // so always keep prices with 6 decimals 
+
+      if(this.totalPoolValueUsd.toNumber()==-1 || this.totalPoolValueUsd.toString()=='0'){
+        throw "call getLpStats first";
+      } 
+      console.log("this.totalPoolValueUsd:",this.totalPoolValueUsd.toString())
 
       if(custodyData && token) {
         custodyDetails.push({
           symbol: custody.symbol,
           price: new BN(prices.get(custody.symbol)),
           targetWeight: token.targetRatio,
-          currentWeight: new BN(0),//(custodyData.assets.owned.mul(price)).div(this.poolData.aumUsd), // use getAssetsUnderManagement()
-          utilization: new BN(0),//custodyData.assets.locked.mul(new BN(10**6)).div(custodyData.assets.owned).div(new BN(10**6)),
+          currentWeight: (custodyData.assets.owned.mul(priceBN)).div(this.totalPoolValueUsd), // use getAssetsUnderManagement()
+          utilization: custodyData.assets.locked.mul(new BN(10**6)).div(custodyData.assets.owned).div(new BN(10**6)),
+          assetsAmountUi : (custodyData.assets.owned.toNumber() / 10**(custody.decimals)).toFixed(4),
+          totalUsdAmountUi : ((custodyData.assets.owned.mul(priceBN)).div(new BN(10**(custody.decimals))).toNumber() / 10**6).toFixed(4),
         })
       }
     }

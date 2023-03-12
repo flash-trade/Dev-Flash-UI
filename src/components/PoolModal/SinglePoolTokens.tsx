@@ -1,6 +1,5 @@
 import { useDailyPriceStats } from "@/hooks/useDailyPriceStats";
-import { Pool } from "@/lib/Pool";
-import { getTokenEIcon, getTokenELabel, tokenAddressToTokenE } from "@/utils/TokenUtils";
+import { getTokenEIcon, getTokenELabel, tokenAddressToTokenE, getSymbol , getTokenSymbol} from "@/utils/TokenUtils";
 import { cloneElement } from "react";
 import { twMerge } from "tailwind-merge";
 import { ACCOUNT_URL } from "@/utils/TransactionHandlers";
@@ -13,22 +12,8 @@ interface Props {
   className?: string;
 }
 
-function TableHeader() {
-  return (
-    <>
-      <p>Pool Tokens</p>
-      <p>Deposit Fee</p>
-      <p>Liquidity</p>
-      <p>Price</p>
-      <p>Amount</p>
-      <p>Current/Target Weight</p>
-      <p>Utilization</p>
-      <p>Utilization</p>
-    </>
-  );
-}
 
-export default function SinglePoolTokens(props: Props) {
+export default function SinglePoolTokens(_props: Props) {
   const stats = useDailyPriceStats();
   const { prices } = usePythPrices();
 
@@ -83,12 +68,15 @@ export default function SinglePoolTokens(props: Props) {
                         </a>
                       </div>
                     </td>
-                    <td>%</td>
+                    <td>2% (todo)</td>
                     <td>
                       {/* {(
                         stats[token].currentPrice *
                         (Number(custody.amount) / 10 ** custody.decimals)
                       ).toFixed(2)} */}
+                        ${ 
+                        poolData.custodyDetails.find(i => i.symbol== getTokenSymbol(token))?.totalUsdAmountUi ?? 0
+                        }
                     </td>
                     <td>{prices.get(token)?.toFixed(2)}</td>
                     <td>
@@ -96,9 +84,18 @@ export default function SinglePoolTokens(props: Props) {
                         Number(poolData.poolStats) /
                         10 ** custody.decimals
                       ).toFixed(2)} */}
+                      {
+                        poolData.custodyDetails.find(i => i.symbol== getTokenSymbol(token))?.assetsAmountUi ?? 0
+                      }
                     </td>
-                    <td>% / %</td>
-                    <td>%</td>
+                    <td>
+                    { poolData.custodyDetails.find(i => i.symbol== getTokenSymbol(token))?.currentWeight.toString() ?? 0 }%
+                      {" "}/{" "}
+                    { poolData.custodyDetails.find(i => i.symbol== getTokenSymbol(token))?.targetWeight.toString() ?? 0 }%
+                    </td>
+                    <td>
+                    { poolData.custodyDetails.find(i => i.symbol== getTokenSymbol(token))?.utilization.toString() ?? 0 }%
+                    </td>
                     <td>
                       <a
                         target="_blank"
