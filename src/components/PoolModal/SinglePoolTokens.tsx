@@ -6,6 +6,7 @@ import { ACCOUNT_URL } from "@/utils/TransactionHandlers";
 import NewTab from "@carbon/icons-react/lib/NewTab";
 import { POOL_CONFIG } from "@/utils/constants";
 import { usePoolData } from "@/hooks/usePoolData";
+import { usePythPrices } from "@/hooks/usePythPrices";
 
 interface Props {
   className?: string;
@@ -14,6 +15,8 @@ interface Props {
 
 export default function SinglePoolTokens(_props: Props) {
   const stats = useDailyPriceStats();
+  const { prices } = usePythPrices();
+
   const poolData = usePoolData();
 
   if (Object.keys(stats).length === 0) {
@@ -75,7 +78,7 @@ export default function SinglePoolTokens(_props: Props) {
                         poolData.custodyDetails.find(i => i.symbol== getTokenSymbol(token))?.totalUsdAmountUi ?? 0
                         }
                     </td>
-                    <td>{stats[token].currentPrice.toFixed(2)}</td>
+                    <td>{prices.get(token)?.toFixed(2)}</td>
                     <td>
                       {/* {(
                         Number(poolData.poolStats) /

@@ -1,18 +1,19 @@
-import { CLUSTER, POOL_CONFIG } from '@/utils/constants';
+import { CLUSTER, DEFAULT_POOL, POOL_CONFIG } from '@/utils/constants';
+import { PoolConfig } from '@/utils/PoolConfig';
 import { getPythProgramKeyForCluster, PriceStatus, PythConnection, PythHttpClient } from '@pythnetwork/client';
 import { useConnection } from '@solana/wallet-adapter-react'
-import  { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
-export function usePythPrices()  {
+export function usePythPrices() {
   const { connection } = useConnection();
 
-  const [prices, setPrices] = useState(new Map<string,number>())
+  const [prices, setPrices] = useState(new Map<string, number>())
 
+  const tokens = POOL_CONFIG.tokens;
 
   const fetchPrices = async () => {
-    if (!connection ) return;
+    if (!connection) return;
 
-    const tokens = POOL_CONFIG.tokens;
     const pythClient = new PythHttpClient(connection, getPythProgramKeyForCluster(CLUSTER));
     const data = await pythClient.getData();
     // console.log('pyth bulk data :>> ', data);
@@ -23,21 +24,29 @@ export function usePythPrices()  {
       const price = data.productPrice.get(token.pythTicker);
       prices.set(token.symbol, price?.aggregate.price!)
     }
-    console.log("prices:",prices)
     setPrices(prices)
-  } 
+  }
 
   useEffect(() => {
+    const pythConnection = new PythConnection(connection, getPythProgramKeyForCluster('devnet'))
+
+    if (connection) {
+      pythConnection.onPriceChange((product, price) => {
+        console.log('price.price ::: ', price.price)
+        tokens.forEach((value) => {
+          if (value.pythTicker === product.symbol && prices.get(value.symbol) !== price.price) {
+            const newPrices = new Map<string, number>(prices);
+            newPrices.set(value.symbol, price.price ?? 0)
+          }
+        })
+      })
+    }
     fetchPrices();
-    const interval = setInterval(() => {
-      console.log("prices timer ")
-      fetchPrices()
-      }, 30000);
-      return () => clearInterval(interval);
+
+    // return () => { pythConnection.stop() }
   }, [connection])
 
-
-  return {prices}
+  return { prices }
 }
 
 

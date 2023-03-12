@@ -7,10 +7,10 @@ import { closePosition } from "src/actions/closePosition";
 import { twMerge } from "tailwind-merge";
 import { PositionValueDelta } from "./PositionValueDelta";
 import { SolidButton } from "../SolidButton";
-import { useDailyPriceStats } from "@/hooks/useDailyPriceStats";
 import { usePositions } from "@/hooks/usePositions";
 import { PositionAccount } from "@/lib/PositionAccount";
 import { asTokenE } from "@/utils/TokenUtils";
+import { usePythPrices } from "@/hooks/usePythPrices";
 
 function formatPrice(num: number) {
   const formatter = new Intl.NumberFormat("en", {
@@ -28,7 +28,7 @@ interface Props {
 export function PositionAdditionalInfo(props: Props) {
   const { publicKey, signTransaction, wallet } = useWallet();
   const { connection } = useConnection();
-  const allPriceStats = useDailyPriceStats();
+  const { prices } = usePythPrices()
 
   let payToken =  asTokenE(props.position.custodyConfig.symbol);
   let positionToken =asTokenE(props.position.custodyConfig.symbol);
@@ -45,7 +45,7 @@ export function PositionAdditionalInfo(props: Props) {
       positionToken,
       props.position.publicKey.toBase58(),
       props.position.side,
-      new BN(allPriceStats[payToken]?.currentPrice * 10 ** 6)
+      new BN((prices.get(payToken) ?? 0) * 10 ** 6)
     );
 
     fetchPositions();

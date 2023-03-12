@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
-import { useDailyPriceStats } from "@/hooks/useDailyPriceStats";
 import { asTokenE, TokenE, tokenAddressToTokenE, getTokenAddress } from "@/utils/TokenUtils";
 
 import { TokenSelector } from "../TokenSelector";
@@ -19,11 +18,11 @@ import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { fetchTokenBalance } from "@/utils/retrieveData";
 
 import { usePositions } from "@/hooks/usePositions";
-import { CLUSTER, DEFAULT_POOL, getPerpetualProgramAndProvider, POOL_CONFIG, RATE_DECIMALS } from "@/utils/constants";
+import { getPerpetualProgramAndProvider, POOL_CONFIG, RATE_DECIMALS } from "@/utils/constants";
 import {  ViewHelper } from "@/viewHelpers/index";
-import { PoolConfig } from "@/utils/PoolConfig";
 import { Side } from "@/types/index";
 import { useGlobalStore } from "@/stores/store";
+import { usePythPrices } from "@/hooks/usePythPrices";
 
 interface Props {
   className?: string;
@@ -62,7 +61,8 @@ export function TradePosition(props: Props) {
 
   const { fetchPositions } = usePositions();
 
-  const allPriceStats = useDailyPriceStats();
+  const { prices } = usePythPrices();
+
   const router = useRouter();
 
   const { pair } = router.query;
@@ -77,7 +77,7 @@ export function TradePosition(props: Props) {
       // console.log("borow rate:",positionTokenCustodyData.borrowRateState.currentRate.toNumber())
       setBorrowRate(positionTokenCustodyData.borrowRateState.currentRate.toNumber()/ 10**(RATE_DECIMALS-2))
       const currentLongUSD = positionTokenCustodyData.longPositions.sizeUsd.toNumber() / 10**RATE_DECIMALS;
-      const positiontokenPrice = allPriceStats[positionToken]?.currentPrice || 0;
+      const positiontokenPrice = prices.get(positionToken) || 0;
       const maxLongCapacity = positiontokenPrice * positionTokenCustodyData.assets.owned.toNumber() / 10**(positionTokenCustody?.decimals!)
       setOpenInterest(currentLongUSD)
       setAvailableLiquidity(maxLongCapacity - currentLongUSD)
@@ -105,7 +105,7 @@ export function TradePosition(props: Props) {
     setEntryPrice(price);
     setEntryFee( price* r.fee.toNumber()/ 10**((positionTokenCustody?.decimals!)))
 
-     const oraclePrice = allPriceStats[positionToken]?.currentPrice  || 0; // chnage to oracle
+     const oraclePrice = prices.get(positionToken)  || 0; // chnage to oracle
     const emaPrice = await View.getOraclePrice( POOL_CONFIG.poolAddress, true, positionTokenCustody?.custodyAccount!)
     // console.log("getOraclePrice, emaPrice: ",oraclePrice,emaPrice.toNumber()/10**6)
     if(props.side == 1){ //long
@@ -158,7 +158,7 @@ export function TradePosition(props: Props) {
       positionToken,
       new BN(payAmount * LAMPORTS_PER_SOL),
       new BN(positionAmount * LAMPORTS_PER_SOL),
-      new BN(allPriceStats[payToken]?.currentPrice * 10 ** 6),
+      new BN((prices.get(payToken) ?? 0) * 10 ** 6),
       props.side
     );
     // fetch and add to store
