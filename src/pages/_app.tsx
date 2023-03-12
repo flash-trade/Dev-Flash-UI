@@ -53,7 +53,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 const Context: FC<{ children: ReactNode }> = ({ children }) => {
   // Can be set to 'devnet', 'testnet', or 'mainnet-beta'
   const network = WalletAdapterNetwork.Devnet;
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+  const endpoint = useMemo(() => 'https://xenonso-develope-ee52.devnet.rpcpool.com/b8a804b2-c299-4823-a828-42f86031af1e', [network]);
   // const endpoint = useMemo(() => "http://localhost:8899");
 
   const wallets = useMemo(

@@ -2,6 +2,7 @@ import { twMerge } from "tailwind-merge";
 
 import { useDailyPriceStats } from "@/hooks/useDailyPriceStats";
 import { TokenE } from "@/utils/TokenUtils";
+import { usePythPrices } from "@/hooks/usePythPrices";
 
 function formatNumber(number: number) {
   const formatter = Intl.NumberFormat("en", {
@@ -18,6 +19,7 @@ interface DailyStatsProps {
 
 export function DailyStats(props: DailyStatsProps) {
   const stats = useDailyPriceStats(props.token);
+  const {prices} = usePythPrices()
 
   return (
     <div
@@ -25,7 +27,7 @@ export function DailyStats(props: DailyStatsProps) {
     >
       <div>
         <div className="text-xs text-zinc-500">Current Price</div>
-        <div className="text-sm text-white">${stats.currentPrice}</div>
+        <div className="text-sm text-white">${prices.get(props.token)?.toFixed(4)}</div>
       </div>
       <div>
         <div className="text-xs text-zinc-500">24h Change</div>
