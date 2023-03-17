@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getPerpetualProgramAndProvider } from "@/utils/constants";
+import { getPerpetualProgramAndProvider, POOL_CONFIG } from "@/utils/constants";
 import { useAnchorWallet, useConnection, useWallet } from "@solana/wallet-adapter-react";
 import {  useGlobalStore } from "@/stores/store";
 import { shallow } from "zustand/shallow";
@@ -44,6 +44,7 @@ export function usePositions() {
       },
     ]);
 
+    fetchedPositions = fetchedPositions.filter(t => t.account.pool.toBase58() === POOL_CONFIG.poolAddress.toBase58())
     // check new positions added 
     //  Also note add new postions as soon as user takes postions or just call this function
 

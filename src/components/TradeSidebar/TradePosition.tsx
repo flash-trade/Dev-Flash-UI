@@ -100,6 +100,7 @@ export function TradePosition(props: Props) {
     // console.log("passing :",payAmount, positionAmount)
     //  const entryPrice = allPriceStats[positionToken]?.currentPrice * payAmount || 0;
     const r = await View.getEntryPriceAndFee( new BN(payAmount * 10**(positionTokenCustody?.decimals!)), new BN(positionAmount * 10**(positionTokenCustody?.decimals!)) ,props.side as any , POOL_CONFIG.poolAddress, positionTokenCustody?.custodyAccount!)
+    console.log('r :>> ', r);
     // console.log("getEntryPriceAndFee, setEntryFee: ",r.price.toNumber(), r.fee.toNumber());
     const price = r.price.toNumber()/ 10**6; 
     setEntryPrice(price);

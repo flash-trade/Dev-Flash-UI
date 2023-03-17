@@ -25,6 +25,12 @@ export interface PriceAndFee {
   fee: BN;
 }
 
+export interface NewPositonPricesAndFee {
+  price: BN;
+  fee: BN;
+  liquidationPrice: BN
+}
+
 export interface ProfitAndLoss {
   profit: BN;
   loss: BN;
@@ -138,7 +144,7 @@ export class ViewHelper {
     side: PositionSide,
     poolKey: PublicKey,
     custodyKey: PublicKey
-  ): Promise<PriceAndFee> => {
+  ): Promise<NewPositonPricesAndFee> => {
     let program = new Program(IDL, PERPETUALS_PROGRAM_ID, this.provider);
     // console.log("fee payer : ",DEFAULT_PERPS_USER.publicKey.toBase58())
 
@@ -165,8 +171,9 @@ export class ViewHelper {
     const res: any = this.decodeLogs(result, index);
 
     return {
-      price: res.price,
+      price: res.entryPrice,
       fee: res.fee,
+      liquidationPrice: res.liquidationPrice
     };
   };
 
