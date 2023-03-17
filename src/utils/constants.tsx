@@ -10,8 +10,13 @@ import { Wallet } from "@project-serum/anchor/dist/cjs/provider";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
 import { PoolConfig } from "./PoolConfig";
 
-
+export const PERCENTAGE_DECIMALS = 4; // stableCoinPercentage
 export const RATE_DECIMALS = 9; // borow rate 
+export const PRICE_DECIMALS = 6; // 
+export const USD_DECIMALS = 6; // 
+export const BPS_DECIMALS = 4; // 
+
+
 export const CLUSTER: Cluster = process.env.NEXT_CLUSTER as Cluster || 'devnet';
 export const DEFAULT_POOL: string = process.env.NEXT_DEFAULT_POOL || 'FlashPool2';
 

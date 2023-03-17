@@ -96,6 +96,7 @@ export class ViewHelper {
       // console.log("coder.decode(returnData); ::: ", coder.decode(returnData));
       return coder.decode(returnData);
     } else {
+       console.error("No Logs Found : data:",data); 
       throw new Error(`No Logs Found `,{cause: data});
     }
   }

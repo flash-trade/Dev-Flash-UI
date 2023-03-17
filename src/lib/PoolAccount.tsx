@@ -1,3 +1,6 @@
+import { defaultData } from "@/hooks/usePoolData";
+import { PERCENTAGE_DECIMALS, PRICE_DECIMALS } from "@/utils/constants";
+import { toUiDecimals } from "@/utils/displayUtils";
 import { PoolConfig } from "@/utils/PoolConfig";
 import { BN } from "@project-serum/anchor";
 import {  Mint } from "@solana/spl-token";
@@ -45,8 +48,8 @@ export class PoolAccount {
           stableCoinAmount = stableCoinAmount.add(custodyData.assets.owned)
           // console.log("custodyData.assets.owned.toString():",custodyData.assets.owned.toString())
         }
-        const priceBN = new BN(prices.get(custody.symbol)* 10**6); // so always keep prices with 6 decimals 
-        const custodyValue = priceBN.mul(custodyData.assets.owned);
+        const priceBN = new BN(prices.get(custody.symbol)* 10**PRICE_DECIMALS); // so always keep prices with 6 decimals 
+        const custodyValue = priceBN.mul(custodyData.assets.owned).div(new BN(10**custody.decimals));
         totalPoolValueUsd = totalPoolValueUsd.add(custodyValue)
       }
     }
@@ -66,7 +69,7 @@ export class PoolAccount {
        decimals : this.poolConfig.lpDecimals,
        totalPoolValue : totalPoolValueUsd,
        price : lpPrice,
-       stableCoinPercentage : stableCoinAmount.mul(new BN(4)).div(totalPoolValueUsd),
+       stableCoinPercentage : stableCoinAmount.mul(new BN(PERCENTAGE_DECIMALS)).div(totalPoolValueUsd),
        marketCap : lpPrice.mul(new BN(this.lpTokenInfo.supply.toString())),
       // totalStaked : BN,
      }
@@ -97,9 +100,14 @@ export class PoolAccount {
       const custodyData = this.custodies.find(t => t.mint.toBase58() === custody.mintKey.toBase58())
       const priceBN = new BN(prices.get(custody.symbol)* 10**6); // so always keep prices with 6 decimals 
 
-      if(this.totalPoolValueUsd.toString()=="-1" || this.totalPoolValueUsd.toString()=='0'){
+      if(this.totalPoolValueUsd.toString()=="-1"){
         console.error("call getLpStats first")
         throw "call getLpStats first";
+      } 
+
+      if(this.totalPoolValueUsd.toString()=='0'){
+        console.error("call getLpStats first , totalPoolValueUsd ZERO")
+        return defaultData.custodyDetails;
       } 
       // console.log("this.totalPoolValueUsd:",this.totalPoolValueUsd.toString())
 
@@ -108,10 +116,12 @@ export class PoolAccount {
           symbol: custody.symbol,
           price: new BN(prices.get(custody.symbol)),
           targetWeight: token.targetRatio,
-          currentWeight: (custodyData.assets.owned.mul(priceBN)).div(this.totalPoolValueUsd), // use getAssetsUnderManagement()
-          utilization: custodyData.assets.locked.mul(new BN(10**6)).div(custodyData.assets.owned).div(new BN(10**6)),
-          assetsAmountUi : (custodyData.assets.owned.toNumber() / 10**(custody.decimals)).toFixed(4),
-          totalUsdAmountUi : ((custodyData.assets.owned.mul(priceBN)).div(new BN(10**(custody.decimals))).toNumber() / 10**6).toFixed(4),
+          currentWeight: (custodyData.assets.owned.mul(priceBN)).mul(new BN(10**PERCENTAGE_DECIMALS)).div(this.totalPoolValueUsd).div(new BN(10**custody.decimals)), 
+          utilization: toUiDecimals(custodyData.assets.locked.mul(new BN(10**PERCENTAGE_DECIMALS)).div(custodyData.assets.owned), PERCENTAGE_DECIMALS, 2),
+          // assetsAmountUi : (custodyData.assets.owned.toNumber() / 10**(custody.decimals)).toFixed(4),
+          assetsAmountUi :  toUiDecimals(custodyData.assets.owned, custody.decimals,4, true),
+          // totalUsdAmountUi : ((custodyData.assets.owned.mul(priceBN)).div(new BN(10**(custody.decimals))).toNumber() / 10**6).toFixed(4),
+          totalUsdAmountUi : toUiDecimals((custodyData.assets.owned.mul(priceBN)), custody.decimals + PRICE_DECIMALS, 2, true),
         })
       }
     }

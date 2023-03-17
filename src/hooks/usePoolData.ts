@@ -23,7 +23,7 @@ export interface ViewPoolData {
     price: BN,
     targetWeight: BN,
     currentWeight: BN,
-    utilization: BN,
+    utilization: string,
     assetsAmountUi : string,
     totalUsdAmountUi : string,
   }[],
@@ -38,7 +38,7 @@ export interface ViewPoolData {
   },
 }
 const ZERO_BN = new BN(0);
-const defaultData : ViewPoolData = {
+export const defaultData : ViewPoolData = {
   oiLong : ZERO_BN,
   oiShort : ZERO_BN,
   poolStats : {
@@ -52,7 +52,7 @@ const defaultData : ViewPoolData = {
     price: ZERO_BN,
     targetWeight: ZERO_BN,
     currentWeight: ZERO_BN,
-    utilization: ZERO_BN,
+    utilization: '0',
     assetsAmountUi : '0',
     totalUsdAmountUi : '0'
   }],
@@ -102,7 +102,7 @@ export function usePoolData() {
       lpStats : lpStats,
       custodyDetails: custodyDetails,
     }
-    console.log("usePooldata:",r)
+    // console.log("usePooldata:",r)
     setPoolData(r);
   }
 
@@ -116,11 +116,13 @@ export function usePoolData() {
 
   useEffect(() => {
     getPoolData();
-    const interval = setInterval(() => {
-      console.log(" getPoolData timer again")
-      getPoolData()
-      }, 30000);
-      return () => clearInterval(interval);
+      // console.log(" getPoolData called on change")
+
+    // const interval = setInterval(() => {
+    //   console.log(" getPoolData timer again")
+    //   getPoolData()
+    //   }, 30000);
+    //   return () => clearInterval(interval);
   }, [custodies, prices])
 
   // return useMemo(() => {

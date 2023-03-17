@@ -1,4 +1,5 @@
 import { Custody, Pool, Position } from "@/types/index";
+import { BN } from "@project-serum/anchor";
 import { Mint } from "@solana/spl-token";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
@@ -10,8 +11,8 @@ interface StoreState {
   removePosition: (positionPk: string) => void;
 
 
-  userLpTokensBalance: number;
-  setUserLpTokensBalance: (lpTokens: number) => void;
+  userLpTokensBalance: BN;
+  setUserLpTokensBalance: (lpTokens: BN) => void;
 
   pool?: Pool;
   setPool: (pool: Pool) => void
@@ -39,8 +40,8 @@ export const useGlobalStore = create<StoreState>()(
       return { positions: positions }
     }),
     
-    userLpTokensBalance: 0,
-    setUserLpTokensBalance: (lpTokens : number) => set({ userLpTokensBalance: lpTokens }),
+    userLpTokensBalance: new BN(0),
+    setUserLpTokensBalance: (lpTokens : BN) => set({ userLpTokensBalance: lpTokens }),
 
     pool: undefined,
     setPool: (pool: Pool) => set({ pool: pool }),

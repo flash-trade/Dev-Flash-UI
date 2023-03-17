@@ -24,11 +24,10 @@ interface Props {
   token: TokenE;
   onChangeAmount?(amount: number): void;
   onSelectToken?(token: TokenE): void;
-  liqRatio: number;
-  setLiquidity?: (amount: number) => void;
   tokenList?: TokenE[];
 }
 
+// NOTE : this componet is BOTH side overlay and the user input component
 export function TokenSelector(props: Props) {
   const { prices } = usePythPrices();
 
@@ -104,23 +103,7 @@ export function TokenSelector(props: Props) {
             value={decimalTrim(props.amount) || ""}
             onChange={(e) => {
               const text = e.currentTarget.value;
-              props.onChangeAmount?.(Number(text));
-
-              // console.log(
-              //   "all nujbers ratio",
-              //   (Number(text) * stats[props.token].currentPrice) *
-              //     props.liqRatio
-              // );
-
-              props.setLiquidity?.(
-                Number(
-                  (
-                    Number(text) *
-                    (prices.get(props.token) ?? 0) *
-                    props.liqRatio
-                  ).toFixed(2)
-                )
-              );
+              props.onChangeAmount?.(Number(text)); // on changeing here set in setTokenAmt() hook
             }}
           />
           {!!prices.get(props.token) && (
@@ -130,6 +113,8 @@ export function TokenSelector(props: Props) {
           )}
         </div>
       </div>
+
+      {/* ====== SIDE BAR ================= */}
       {selectorOpen && (
         <TokenSelectorList
           onClose={() => setSelectorOpen(false)}

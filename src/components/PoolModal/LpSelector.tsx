@@ -46,8 +46,8 @@ export const LpSelector = (props: Props) => {
             value={props.amount || ""}
             onChange={(e) => {
               const text = e.currentTarget.value;
-              console.log("lp text", text);
-              props.onChangeAmount?.(text ? Number(text) : 0);
+              console.log("text:",text);
+              props.onChangeAmount?.(Number(text)); // on changeing here set in setLpTokenAmt() hook
             }}
           />
         </div>

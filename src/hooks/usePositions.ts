@@ -75,7 +75,7 @@ export function usePositions() {
   useEffect(() => {
     fetchPositions();
     const interval = setInterval(() => {
-      console.log("timer again")
+      console.log("usePositions timer again")
          fetchPositions()
       }, 30000);
       return () => clearInterval(interval);

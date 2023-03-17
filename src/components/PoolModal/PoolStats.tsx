@@ -6,10 +6,11 @@ import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { checkIfAccountExists, fetchLPBalance } from "@/utils/retrieveData";
 import { useUserData } from "@/hooks/useUserData";
-import { POOL_CONFIG } from "@/utils/constants";
+import { PERCENTAGE_DECIMALS, POOL_CONFIG, PRICE_DECIMALS , USD_DECIMALS } from "@/utils/constants";
 import { usePoolData } from "@/hooks/usePoolData";
 import { BN } from "@project-serum/anchor";
 import { useGlobalStore } from "@/stores/store";
+import { toUiDecimals } from "@/utils/displayUtils";
 
 interface Props {
   className?: string;
@@ -20,46 +21,36 @@ export default function PoolStats(props: Props) {
 
   const poolData = usePoolData();
 
-  // const userLpTokensBalance = useGlobalStore( state => state.userLpTokensBalance);
+  const userLpTokensBalance = useGlobalStore( state => state.userLpTokensBalance);
 
 
-  const [liquidityBalanceValueUsd, setLiquidityBalanceValueUsd] = useState(0);
-  const [liquidityShare, setLiquidityShare] = useState(0);
+  const [liquidityBalanceValueUsd, setLiquidityBalanceValueUsd] = useState('0');
+  const [liquidityShare, setLiquidityShare] = useState('0');
 
 
-  //  function getLiquidityBalanceValueUsd() {
+   function getLiquidityBalanceValueUsd() {
 
-  //   let lpSupply = poolData.lpStats.lpTokenSupply.div(new BN(10 ** POOL_CONFIG.lpDecimals));
+    if(poolData.lpStats.lpTokenSupply.toString()=='0'){
+      return;
+    }
 
-  //   // console.log("poolData.lpStats.totalPoolValue.toNumber():",poolData.lpStats.totalPoolValue.toString())
-  //   let userLiquidity = ((userLpTokensBalance / lpSupply.toNumber()) * poolData.lpStats.totalPoolValue.toNumber())/ 10**6;
+    // console.log("poolData.lpStats.totalPoolValue.toNumber():",poolData.lpStats.totalPoolValue.toString())
+    const userShareInPool = userLpTokensBalance.mul(new BN(10**PERCENTAGE_DECIMALS)).div(poolData.lpStats.lpTokenSupply)
+    setLiquidityShare(toUiDecimals(userShareInPool,PERCENTAGE_DECIMALS -2, 2));
 
-  //   if (Number.isNaN(userLiquidity)) {
-  //     return;
-  //   }
+    const userLiquidityAmtUSD = userShareInPool.mul(poolData.lpStats.totalPoolValue).div(new BN(10**PERCENTAGE_DECIMALS))
+    // let userLiquidityAmtUSD = ((userLpTokensBalance / lpSupply.toNumber()) * poolData.lpStats.totalPoolValue.toNumber())/ 10**6;
 
-  //   setLiquidityBalanceValueUsd(userLiquidity);
-  // }
+    setLiquidityBalanceValueUsd(toUiDecimals(userLiquidityAmtUSD, PRICE_DECIMALS, 2, true));
+  }
 
-  //  function getLiquidityShare() {
-    
-  //   let lpSupply = poolData.lpStats.lpTokenSupply.div(new BN(10 ** POOL_CONFIG.lpDecimals));
 
-  //   let userShare = (userLpTokensBalance / lpSupply.toNumber()) * 100;
-
-  //   if (Number.isNaN(userShare)) {
-  //     return;
-  //   }
-  //   setLiquidityShare(userShare);
-  // }
-
-  // useEffect(() => {
-  //   if(userLpTokensBalance){
-  //     getLiquidityBalanceValueUsd();
-  //     getLiquidityShare();
-  //   }
+  useEffect(() => {
+    if(userLpTokensBalance){
+      getLiquidityBalanceValueUsd();
+    }
    
-  // }, [userLpTokensBalance, poolData])
+  }, [userLpTokensBalance, poolData])
   
 
   if (Object.keys(stats).length === 0) {
@@ -78,36 +69,37 @@ export default function PoolStats(props: Props) {
         {[
           {
             label: "Liquidity",
-            value: `$${ Number(poolData.lpStats.totalPoolValue.toString()) / 10**6}`,
+            value: `$${ toUiDecimals(poolData.lpStats.totalPoolValue, 6, 2, true)}`,
           },
           {
             label: "Volume",
-            value: `$${poolData.poolStats.totalVolume.toString()}`,
+            value: `$${poolData.poolStats.totalVolume.toNumber().toLocaleString()}`,
           },
           {
             label: "OI Long",
             value: (
               <>
-                {`$${poolData.oiLong.toString()} `}
+                {`$${poolData.oiLong.toNumber().toLocaleString()} `}
                 <span className="text-zinc-500"> </span>
               </>
             ),
           },
           {
             label: "OI Short",
-            value: `$${poolData.oiShort.toString()}`,
+            value: `$${poolData.oiShort.toNumber().toLocaleString()}`,
           },
           {
             label: "Fees",
-            value: `$${poolData.poolStats.totalFees.toString()}`,
+            value: `$${ toUiDecimals(poolData.poolStats.totalFees, USD_DECIMALS, 2, true)}`,
+
           },
           {
             label: "Your Liquidity Value",
-            value: `$${liquidityBalanceValueUsd.toFixed(2)}`,
+            value: `$${liquidityBalanceValueUsd ?? '0'}`,
           },
           {
             label: "Your Share",
-            value: `${liquidityShare.toFixed(2)}%`,
+            value: `${liquidityShare ?? '0'}%`,
           },
         ].map(({ label, value }, i) => (
           <div

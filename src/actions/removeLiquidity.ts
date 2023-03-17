@@ -1,4 +1,3 @@
-import { Pool } from "@/lib/PoolAccount";
 import { getTokenAddress, TokenE } from "@/utils/TokenUtils";
 import {
   getPerpetualProgramAndProvider,
@@ -20,24 +19,23 @@ import { SignerWalletAdapterProps } from "@solana/wallet-adapter-base";
 import { Wallet } from "@solana/wallet-adapter-react";
 import {
   Connection,
-  LAMPORTS_PER_SOL,
   PublicKey,
-  SystemProgram,
   Transaction,
 } from "@solana/web3.js";
 
-export async function changeLiquidity(
+export async function removeLiquidity(
   wallet: Wallet,
   publicKey: PublicKey,
   signTransaction: SignerWalletAdapterProps["signAllTransactions"],
   connection: Connection,
   payToken: TokenE,
-  tokenAmount?: number,
-  liquidityAmount?: number
+  liquidityAmountIn: number,
+  minAmountOut: number,
+  slippage = 10
 ) {
   let { perpetual_program } = await getPerpetualProgramAndProvider(wallet as any);
 
-console.log("POOL_CONFIG.programId:",POOL_CONFIG.programId.toBase58())
+console.log("POOL_CONFIG.programId:",POOL_CONFIG.programId.toBase58(), liquidityAmountIn, minAmountOut)
 
   let lpTokenAccount = await getAssociatedTokenAddress(
     POOL_CONFIG.lpTokenMint,
@@ -75,16 +73,7 @@ console.log("POOL_CONFIG.programId:",POOL_CONFIG.programId.toBase58())
   let transaction = new Transaction();
 
   try {
-    if (!(await checkIfAccountExists(lpTokenAccount, connection))) {
-      transaction = transaction.add(
-        createAssociatedTokenAccountInstruction(
-          publicKey,
-          lpTokenAccount,
-          publicKey,
-          POOL_CONFIG.lpTokenMint
-        )
-      );
-    }
+   
 
     if (payToken == TokenE.SOL) {
       console.log("pay token name is sol", payToken);
@@ -105,60 +94,22 @@ console.log("POOL_CONFIG.programId:",POOL_CONFIG.programId.toBase58())
             NATIVE_MINT
           )
         );
-      }
-
-      // get balance of associated token account
-      console.log("sol ata exists");
-      const balance = await connection.getBalance(associatedTokenAccount);
-      if (balance < tokenAmount * LAMPORTS_PER_SOL) {
-        console.log("balance insufficient");
-        transaction = transaction.add(
-          SystemProgram.transfer({
-            fromPubkey: publicKey,
-            toPubkey: associatedTokenAccount,
-            lamports: tokenAmount * LAMPORTS_PER_SOL,
-          }),
-          createSyncNativeInstruction(associatedTokenAccount)
-        );
-      }
-    }
-
-    if (tokenAmount) {
-      console.log("in add liq", tokenAmount);
-      let amount;
-      if (payToken === TokenE.SOL) {
-        amount = new BN(tokenAmount * LAMPORTS_PER_SOL);
       } else {
-        amount = new BN(tokenAmount * 10e5);
+        console.log("sol ata exists");
       }
-      console.log("amonut:", amount.toString())
-      let minLpAmountOut = new BN(0);
-      let addLiquidityTx = await perpetual_program.methods
-        .addLiquidity({ 
-          amountIn :amount,
-          minLpAmountOut
-         })
-        .accounts({
-          owner: publicKey,
-          fundingAccount: userCustodyTokenAccount, // user token account for custody token account
-          lpTokenAccount,
-          transferAuthority: transferAuthorityAddress,
-          perpetuals: perpetualsAddress,
-          pool: POOL_CONFIG.poolAddress,
-          custody: payTokenCustody.custodyAccount,
-          custodyOracleAccount: payTokenCustody.oracleAddress,
-          custodyTokenAccount: payTokenCustody.tokenAccount,
-          lpTokenMint: POOL_CONFIG.lpTokenMint,
-          tokenProgram: TOKEN_PROGRAM_ID,
-        })
-        .remainingAccounts([...custodyAccountMetas, ...custodyOracleAccountMetas])
-        .transaction();
-      transaction = transaction.add(addLiquidityTx);
+
     }
-    if (liquidityAmount) {
-      let lpAmount = new BN(liquidityAmount * 10 ** POOL_CONFIG.lpDecimals);
+
+    if (liquidityAmountIn) {
+      let lpAmount = new BN(liquidityAmountIn * 10 ** POOL_CONFIG.lpDecimals);
+      let minAmountOutBN = (new BN(minAmountOut * 10** payTokenCustody.decimals)).mul(new BN(100-slippage)).div(new BN(100));
+
+      console.log(">> minAmountOutBN:",minAmountOutBN.toString())
       let removeLiquidityTx = await perpetual_program.methods
-        .removeLiquidity({ lpAmount })
+        .removeLiquidity({ 
+            lpAmountIn : lpAmount,
+            minAmountOut : minAmountOutBN
+         })
         .accounts({
           owner: publicKey,
           receivingAccount: userCustodyTokenAccount, // user token account for custody token account

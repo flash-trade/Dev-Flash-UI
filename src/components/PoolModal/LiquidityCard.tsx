@@ -13,11 +13,15 @@ import { LpSelector } from "./LpSelector";
 import { changeLiquidity } from "src/actions/changeLiquidity";
 import { fetchLPBalance, fetchTokenBalance } from "@/utils/retrieveData";
 
-import { getPerpetualProgramAndProvider, POOL_CONFIG } from "@/utils/constants";
+import { getPerpetualProgramAndProvider, POOL_CONFIG, PRICE_DECIMALS } from "@/utils/constants";
 import { BN } from "@project-serum/anchor";
 import { useGlobalStore } from "@/stores/store";
 import { usePythPrices } from "@/hooks/usePythPrices";
 import { ViewHelper } from "@/viewHelpers/index";
+import { toUiDecimals } from "@/utils/displayUtils";
+import { usePoolData } from "@/hooks/usePoolData";
+import { addLiquidity } from "src/actions/addLiquidity";
+import { removeLiquidity } from "src/actions/removeLiquidity";
 
 interface Props {
   className?: string;
@@ -28,29 +32,27 @@ enum Tab {
   Remove,
 }
 
+const TOKEN_E_LIST = POOL_CONFIG.tokens.map((token) => {
+  return tokenAddressToTokenE(token.mintKey.toBase58());
+});
 
 export default function LiquidityCard(props: Props) {
   const { wallet, publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
-  const lpMintData = useGlobalStore(state => state.lpMintData);
 
   const {prices} = usePythPrices();
+  const poolData = usePoolData();
 
-  const [tokenAmount, setTokenAmount] = useState(10);
+  // const lpMintData = useGlobalStore(state => state.lpMintData);
+  const userLpTokensBalance = useGlobalStore( state => state.userLpTokensBalance);  
 
   const [tab, setTab] = useState(Tab.Add);
 
+  const [payToken, setPayToken] = useState(TOKEN_E_LIST[0]);
   const [payTokenBalance, setPayTokenBalance] = useState(0);
-  const [userLpTokenBalance, setUserLpTokenBalance] = useState(0);
-  const [lpTokenAmount, setLpTokenAmount] = useState(0);
 
-  const [userLPShare, setUserLPShare] = useState(0);
-
-  let tokenList = POOL_CONFIG.tokens.map((token) => {
-    return tokenAddressToTokenE(token.mintKey.toBase58());
-  });
-
-  const [payToken, setPayToken] = useState(tokenList[0]);
+  const [inputTokenAmount, setInputTokenAmount] = useState(0);
+  const [inputLpTokenAmount, setInputLpTokenAmount] = useState(0);
 
 
   useEffect(() => {
@@ -62,12 +64,13 @@ export default function LiquidityCard(props: Props) {
       );
       setPayTokenBalance(tokenBalance);
 
-      let lpBalance = await fetchLPBalance(
-        POOL_CONFIG.lpTokenMint,
-        publicKey!,
-        connection
-      );
-      setUserLpTokenBalance(lpBalance);
+      // TODO:: creating LP POSITION FIRST TIME MAKE SURE TO SET IN STORE 
+      // let lpBalance = await fetchLPBalance(
+      //   POOL_CONFIG.lpTokenMint,
+      //   publicKey!,
+      //   connection
+      // );
+      // setUserLpTokenBalance(lpBalance);
     }
     if (publicKey && payToken) {
       fetchData();
@@ -92,63 +95,86 @@ export default function LiquidityCard(props: Props) {
   // }, [tokenAmount])
   
   useEffect(() => {
-    (async () => {
-      let { provider } = await getPerpetualProgramAndProvider(wallet as any);
-      const View = new ViewHelper(connection, provider );
-  
-      const poolAUM = await View.getAssetsUnderManagement( POOL_CONFIG.poolAddress);
- 
-      if(poolAUM.toNumber() && lpMintData){
-        console.log("supply, poolAUM, :",lpMintData, lpMintData?.supply?.toString() /10 ** (lpMintData.decimals) ,poolAUM.toNumber())
-        console.log("tokenAmount,prices", tokenAmount, prices, payToken,  prices.get(payToken!))
 
-          const supply= lpMintData.supply.toString();
-          const depositUsd = tokenAmount * (prices.get(payToken!) ?? 0);
-          console.log("depositUsd , AUM:",depositUsd, poolAUM.toNumber())
-          const shareBN = (new BN(depositUsd)).mul(new BN(10**6)).div(poolAUM);
-          console.log("shareBN:",shareBN.toNumber())
-          setUserLPShare(shareBN.toNumber()/10**6);
+    //  ALL CALCULATIONS IN BN
+    if(!payToken || !prices.get(payToken!)){
+      console.log("no paytoken price", payToken,prices.get(payToken!) )
+      return;
+    }
+    // console.log("price", payToken,prices.get(payToken!) )
 
-          const userLPtokensRecieve =  (new BN(supply)).mul(shareBN).div(new BN(10 ** (lpMintData.decimals)));
-          console.log("userLPShare.toNumber, supply:",userLPtokensRecieve.toNumber()/10**6, supply/ 10 ** (lpMintData.decimals))
-          setLpTokenAmount(userLPtokensRecieve.toNumber()/10**6)
-       }
-    })()
+    const payTokenPriceBN = new BN(prices.get(payToken!)! * 10**PRICE_DECIMALS ) ; // already handled above
    
-  }, [tokenAmount, prices, lpMintData])
+    const poolAumUsd = poolData.lpStats.totalPoolValue;
+    const lpTokenSupply = poolData.lpStats.lpTokenSupply;
+    if(poolAumUsd.toString()!=='0' && lpTokenSupply.toString()!=='0'){
+     
+      // replace 6 with token decimals
+        const depositUsd = new BN(inputTokenAmount * 10**6).mul(payTokenPriceBN).div(new BN(10**6))
+        // console.log("depositUsd:",depositUsd.toString(), inputTokenAmount, payTokenPriceBN.toString())
+        const shareBN = depositUsd.mul(new BN(10**6)).div(poolAumUsd);
+        // console.log("shareBN:",shareBN.toNumber())
+
+        const userLPtokensRecieveBN =  lpTokenSupply.mul(shareBN).div(new BN(10**6)); // div share decimals
+        const useLPTokenUi = toUiDecimals(userLPtokensRecieveBN, POOL_CONFIG.lpDecimals, 4);
+        // console.log("useLPTokenUi:",useLPTokenUi)
+        setInputLpTokenAmount(Number(useLPTokenUi))
+      }
+    
+  }, [inputTokenAmount, prices, poolData])
+  
+
+  // useEffect(() => {
+  //   console.log("price", payToken, prices?.get(payToken!) )
+  // }, [prices])
   
 
 
   async function changeLiq() {
-    console.log("before change", tab === Tab.Remove, lpTokenAmount);
-    await changeLiquidity(
-      wallet!,
-      publicKey!,
-      signTransaction as any,
-      connection,
-      payToken!,
-      tab === Tab.Add ? tokenAmount : 0,
-      tab === Tab.Remove ? lpTokenAmount : 0
-    );
+    console.log("before change", tab === Tab.Remove, inputLpTokenAmount);
+    const slippage = 10;
+    if( tab === Tab.Add){
+      await addLiquidity(
+        wallet!,
+        publicKey!,
+        signTransaction as any,
+        connection,
+        payToken!,
+         inputTokenAmount,
+        inputLpTokenAmount,
+        slippage
+      );
 
-    // router.reload(window.location.pathname);
+    } else {
+      await removeLiquidity(
+        wallet!,
+        publicKey!,
+        signTransaction as any,
+        connection,
+        payToken!,
+        inputLpTokenAmount,
+         inputTokenAmount,
+        slippage
+      );
+
+    }
   }
 
-  // async function onChangeAmtLiq(tokenAmtUsd: number) {
-  //   setLiqAmount(tokenAmtUsd * liqRatio);
-  // }
 
   return (
     <div className={props.className}>
       <div
         className={twMerge("bg-zinc-800", "p-4", "rounded", "overflow-hidden")}
       >
+
+       {/*  ============ TAB selection  =========== */}
+
         <div className="mb-4 grid grid-cols-2 gap-x-1 rounded bg-black p-1">
           <SidebarTab
             selected={tab === Tab.Add}
             onClick={() => {
-              setLpTokenAmount(0);
-              setTokenAmount(0);
+              setInputLpTokenAmount(0);
+              setInputTokenAmount(0);
               setTab(Tab.Add);
             }}
           >
@@ -158,8 +184,8 @@ export default function LiquidityCard(props: Props) {
           <SidebarTab
             selected={tab === Tab.Remove}
             onClick={() => {
-              setLpTokenAmount(0);
-              setTokenAmount(0);
+              setInputLpTokenAmount(0);
+              setInputTokenAmount(0);
               setTab(Tab.Remove);
             }}
           >
@@ -168,10 +194,8 @@ export default function LiquidityCard(props: Props) {
           </SidebarTab>
         </div>
 
-        {/* {poolName == "internal_test" &&
-          Object.keys(props.pool.tokens).map((token) => {
-            return <AirdropButton key={token} mint={token} />;
-          })} */}
+       
+       {/*  ============ first half INPUT  =========== */}
 
         <div>
           <div className="flex items-center justify-between">
@@ -185,49 +209,67 @@ export default function LiquidityCard(props: Props) {
               <>
                 {" "}
                 <div className="text-sm font-medium text-white">You Remove</div>
-                {publicKey && <div>Balance: {userLpTokenBalance.toFixed(2)}</div>}
+                {publicKey && <div>Balance: {toUiDecimals(userLpTokensBalance, POOL_CONFIG.lpDecimals, 2)}</div>}
               </>
             )}
           </div>
           {tab === Tab.Add ? (
             <TokenSelector
               className="mt-2"
-              amount={tokenAmount}
+              amount={inputTokenAmount}
               token={payToken!}
-              onChangeAmount={setTokenAmount}
+              onChangeAmount={setInputTokenAmount}
               onSelectToken={setPayToken}
-              liqRatio={userLPShare}
-              setLiquidity={setLpTokenAmount}
-              tokenList={tokenList}
+              tokenList={TOKEN_E_LIST}
             />
           ) : (
             <LpSelector
               className="mt-2"
-              amount={lpTokenAmount}
-              onChangeAmount={setLpTokenAmount}
+              amount={inputLpTokenAmount}
+              onChangeAmount={setInputLpTokenAmount}
             />
           )}
         </div>
+
+        
         <br/><br/>
+
+       {/*  ============ second half INPUT  =========== */}
+
         <div>
           <div className="flex items-center justify-between">
             <div className="text-sm font-medium text-white">You Receive</div>
-            {publicKey && <div>Balance: {userLpTokenBalance.toFixed(2)}</div>}
+            {
+             publicKey &&  
+                (
+                  tab === Tab.Add ? 
+                  <div>
+                  Balance: {toUiDecimals(userLpTokensBalance, POOL_CONFIG.lpDecimals, 2)}
+                  </div>
+                  : 
+                  <div>
+                  Balance: {payTokenBalance.toFixed(2)}
+                </div>
+                 
+                )
+             }
           </div>
 
           {tab === Tab.Add ? (
-            <LpSelector className="mt-2" amount={lpTokenAmount} />
+            <LpSelector className="mt-2" amount={inputLpTokenAmount} />
           ) : (
             <TokenSelector
               className="mt-2"
-              amount={tokenAmount}
+              amount={inputTokenAmount}
               token={payToken!}
               onSelectToken={setPayToken}
-              tokenList={tokenList}
-              liqRatio={userLPShare}
+              tokenList={TOKEN_E_LIST}
             />
           )}
         </div>
+
+       {/*  ============ confirm  ============== */}
+
 
         <SolidButton className="mt-6 w-full" onClick={changeLiq}>
           Confirm

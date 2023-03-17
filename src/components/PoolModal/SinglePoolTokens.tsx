@@ -4,9 +4,10 @@ import { cloneElement } from "react";
 import { twMerge } from "tailwind-merge";
 import { ACCOUNT_URL } from "@/utils/TransactionHandlers";
 import NewTab from "@carbon/icons-react/lib/NewTab";
-import { POOL_CONFIG } from "@/utils/constants";
+import { PERCENTAGE_DECIMALS, POOL_CONFIG } from "@/utils/constants";
 import { usePoolData } from "@/hooks/usePoolData";
 import { usePythPrices } from "@/hooks/usePythPrices";
+import { toUiDecimals } from "@/utils/displayUtils";
 
 interface Props {
   className?: string;
@@ -68,30 +69,23 @@ export default function SinglePoolTokens(_props: Props) {
                         </a>
                       </div>
                     </td>
+
                     <td>2% (todo)</td>
+
+                    <td> ${  poolData.custodyDetails.find(i => i.symbol== getTokenSymbol(token))?.totalUsdAmountUi ?? 0 } </td>
+
+                    <td> ${prices.get(token)?.toFixed(2)}</td>
+
                     <td>
-                      {/* {(
-                        stats[token].currentPrice *
-                        (Number(custody.amount) / 10 ** custody.decimals)
-                      ).toFixed(2)} */}
-                        ${ 
-                        poolData.custodyDetails.find(i => i.symbol== getTokenSymbol(token))?.totalUsdAmountUi ?? 0
-                        }
-                    </td>
-                    <td>{prices.get(token)?.toFixed(2)}</td>
-                    <td>
-                      {/* {(
-                        Number(poolData.poolStats) /
-                        10 ** custody.decimals
-                      ).toFixed(2)} */}
                       {
                         poolData.custodyDetails.find(i => i.symbol== getTokenSymbol(token))?.assetsAmountUi ?? 0
                       }
                     </td>
+
                     <td>
-                    { poolData.custodyDetails.find(i => i.symbol== getTokenSymbol(token))?.currentWeight.toString() ?? 0 }%
+                    { toUiDecimals(poolData.custodyDetails.find(i => i.symbol== getTokenSymbol(token))?.currentWeight!, PERCENTAGE_DECIMALS -2 , 2) ?? 0 }%
                       {" "}/{" "}
-                    { poolData.custodyDetails.find(i => i.symbol== getTokenSymbol(token))?.targetWeight.toString() ?? 0 }%
+                    { toUiDecimals(poolData.custodyDetails.find(i => i.symbol== getTokenSymbol(token))?.targetWeight!, PERCENTAGE_DECIMALS -2 , 2 ) ?? 0 }%
                     </td>
                     <td>
                     { poolData.custodyDetails.find(i => i.symbol== getTokenSymbol(token))?.utilization.toString() ?? 0 }%

@@ -1,9 +1,11 @@
 import { useGlobalStore } from '@/stores/store'
 import { Custody, Pool, Position } from '@/types/index'
 import { CLUSTER, DEFAULT_POOL, getPerpetualProgramAndProvider, POOL_CONFIG } from '@/utils/constants'
+import { toUiDecimals } from '@/utils/displayUtils'
 import { PoolConfig } from '@/utils/PoolConfig'
 import { checkIfAccountExists } from '@/utils/retrieveData'
 import { TokenAccount } from '@metaplex-foundation/js'
+import { BN } from '@project-serum/anchor'
 import { AccountLayout, getAssociatedTokenAddress, getMint, Mint, MintLayout } from '@solana/spl-token'
 import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react'
 import { PublicKey, TokenAccountBalancePair } from '@solana/web3.js'
@@ -21,7 +23,7 @@ export const useHydrateStore = () => {
   const setPoolData = useGlobalStore(state => state.setPool);
   const setLpMintData = useGlobalStore(state => state.setLpMintData);
 
-  // const setUserLpTokensBalance = useGlobalStore(state => state.setUserLpTokensBalance);
+  const setUserLpTokensBalance = useGlobalStore(state => state.setUserLpTokensBalance);
 
 
   useEffect(() => {
@@ -146,40 +148,41 @@ export const useHydrateStore = () => {
     // }
   }, [])
 
-  // useEffect(() => {
-  //   const subIds: number[] = [];
-  //   (async () => {
-  //     if(!wallet || !wallet.publicKey) return;
+  useEffect(() => {
+    const subIds: number[] = [];
+    (async () => {
+      if(!wallet || !wallet.publicKey) return;
 
-  //     // let { perpetual_program } = await getPerpetualProgramAndProvider();
+      // let { perpetual_program } = await getPerpetualProgramAndProvider();
 
-  //     const lpTokenAccount = await getAssociatedTokenAddress(POOL_CONFIG.lpTokenMint, wallet.publicKey);
-  //     if (!(await checkIfAccountExists(lpTokenAccount, connection))) {
-  //       setUserLpTokensBalance(0);
-  //     } else {
-  //       let balance = await connection.getTokenAccountBalance(lpTokenAccount);
-  //       setUserLpTokensBalance(balance.value.uiAmount!);
+      const lpTokenAccount = await getAssociatedTokenAddress(POOL_CONFIG.lpTokenMint, wallet.publicKey);
+      if (!(await checkIfAccountExists(lpTokenAccount, connection))) {
+        setUserLpTokensBalance(new BN(0));
+      } else {
+        let accountInfo = await connection.getAccountInfo(lpTokenAccount);
+        const decodedTokenAccountInfo = AccountLayout.decode(accountInfo!.data);
+        setUserLpTokensBalance(new BN(decodedTokenAccountInfo.amount.toString()));
 
-  //       const subId = connection.onAccountChange(lpTokenAccount, (accountInfo) => {
-  //         // const data = perpetual_program.coder.accounts.decode<TokenAccountBalancePair>('TokenAmount', accountInfo.data);
-  //         // setUserLpTokensBalance(balance.value.uiAmount!);
-  //         // need to REDO here ????? 
-  //         // let balance = await connection.getTokenAccountBalance(lpTokenAccount);
-  //         const decodedTokenAccountInfo = AccountLayout.decode(accountInfo!.data);
-  //         setUserLpTokensBalance(Number(decodedTokenAccountInfo.amount.toString()));
+        const subId = connection.onAccountChange(lpTokenAccount, (accountInfo) => {
+          // const data = perpetual_program.coder.accounts.decode<TokenAccountBalancePair>('TokenAmount', accountInfo.data);
+          // setUserLpTokensBalance(balance.value.uiAmount!);
+          // need to REDO here ????? 
+          // let balance = await connection.getTokenAccountBalance(lpTokenAccount);
+          const decodedTokenAccountInfo = AccountLayout.decode(accountInfo!.data);
+          setUserLpTokensBalance(new BN(decodedTokenAccountInfo.amount.toString()));
 
-  //       })
-  //       subIds.push(subId)
+        })
+        subIds.push(subId)
 
-  //     }
-  //   })()
+      }
+    })()
 
-  //   return () => {
-  //     subIds.forEach(subId => {
-  //       connection.removeAccountChangeListener(subId);
-  //     });
-  //   }
-  // }, [wallet])
+    return () => {
+      subIds.forEach(subId => {
+        connection.removeAccountChangeListener(subId);
+      });
+    }
+  }, [wallet])
 
 
   return (
