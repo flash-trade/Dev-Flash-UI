@@ -131,8 +131,13 @@ console.log("POOL_CONFIG.programId:",POOL_CONFIG.programId.toBase58())
       } else {
         amount = new BN(tokenAmount * 10e5);
       }
+      console.log("amonut:", amount.toString())
+      let minLpAmountOut = new BN(0);
       let addLiquidityTx = await perpetual_program.methods
-        .addLiquidity({ amount })
+        .addLiquidity({ 
+          amountIn :amount,
+          minLpAmountOut
+         })
         .accounts({
           owner: publicKey,
           fundingAccount: userCustodyTokenAccount, // user token account for custody token account

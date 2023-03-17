@@ -34,15 +34,6 @@
       ],
       "custodies": [
         {
-          "custodyAccount": "HqNfDMwisNxkz1kCQnzMazz43H8HaZT3RiKdpYdcndrp",
-          "tokenAccount": "95J9W27QUcZ1zHd7A3fryNczBQ11JE1Y6rEopFVxKx27",
-          "symbol": "SOL",
-          "mintKey": "So11111111111111111111111111111111111111112",
-          "decimals": 9,
-          "isStable": false,
-          "oracleAddress": "J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix"
-        },
-        {
           "custodyAccount": "2SSgtXhRSijxqVJZyeRJWjzvHjyBBAkUkY2o8Xatttbh",
           "tokenAccount": "Bra9siM5qsLcnYHXHNLYMLDeppCcE4HwwzefRsNLkZjY",
           "symbol": "USDC",
@@ -50,6 +41,15 @@
           "decimals": 6,
           "isStable": true,
           "oracleAddress": "5SSkXsEKQepHHAewytPVwdej4epN1nxgLVM84L4KXgy7"
+        },
+        {
+          "custodyAccount": "HqNfDMwisNxkz1kCQnzMazz43H8HaZT3RiKdpYdcndrp",
+          "tokenAccount": "95J9W27QUcZ1zHd7A3fryNczBQ11JE1Y6rEopFVxKx27",
+          "symbol": "SOL",
+          "mintKey": "So11111111111111111111111111111111111111112",
+          "decimals": 9,
+          "isStable": false,
+          "oracleAddress": "J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix"
         }
       ]
     },
