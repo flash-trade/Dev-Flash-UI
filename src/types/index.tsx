@@ -141,12 +141,21 @@ export interface Permissions {
 export interface PricingParams {
     useEma: boolean;
     useUnrealizedPnlInAum: boolean;
+
     tradeSpreadLong: BN;
     tradeSpreadShort: BN;
     swapSpread: BN;
+    
     minInitialLeverage: BN;
+    maxInitialLeverage: BN;
+
     maxLeverage: BN;
     maxPayoffMult: BN;
+
+    maxUtilization: BN;
+    // USD denominated values always have implied USD_DECIMALS decimals
+    maxPositionLockedUsd: BN;
+    maxTotalLockedUsd: BN;
 }
 
 export interface TradeStats {

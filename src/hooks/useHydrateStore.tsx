@@ -21,7 +21,7 @@ export const useHydrateStore = () => {
   const setPoolData = useGlobalStore(state => state.setPool);
   const setLpMintData = useGlobalStore(state => state.setLpMintData);
 
-  const setUserLpTokensBalance = useGlobalStore(state => state.setUserLpTokensBalance);
+  // const setUserLpTokensBalance = useGlobalStore(state => state.setUserLpTokensBalance);
 
 
   useEffect(() => {
@@ -146,40 +146,40 @@ export const useHydrateStore = () => {
     // }
   }, [])
 
-  useEffect(() => {
-    const subIds: number[] = [];
-    (async () => {
-      if(!wallet || !wallet.publicKey) return;
+  // useEffect(() => {
+  //   const subIds: number[] = [];
+  //   (async () => {
+  //     if(!wallet || !wallet.publicKey) return;
 
-      // let { perpetual_program } = await getPerpetualProgramAndProvider();
+  //     // let { perpetual_program } = await getPerpetualProgramAndProvider();
 
-      const lpTokenAccount = await getAssociatedTokenAddress(POOL_CONFIG.lpTokenMint, wallet.publicKey);
-      if (!(await checkIfAccountExists(lpTokenAccount, connection))) {
-        setUserLpTokensBalance(0);
-      } else {
-        let balance = await connection.getTokenAccountBalance(lpTokenAccount);
-        setUserLpTokensBalance(balance.value.uiAmount!);
+  //     const lpTokenAccount = await getAssociatedTokenAddress(POOL_CONFIG.lpTokenMint, wallet.publicKey);
+  //     if (!(await checkIfAccountExists(lpTokenAccount, connection))) {
+  //       setUserLpTokensBalance(0);
+  //     } else {
+  //       let balance = await connection.getTokenAccountBalance(lpTokenAccount);
+  //       setUserLpTokensBalance(balance.value.uiAmount!);
 
-        const subId = connection.onAccountChange(lpTokenAccount, (accountInfo) => {
-          // const data = perpetual_program.coder.accounts.decode<TokenAccountBalancePair>('TokenAmount', accountInfo.data);
-          // setUserLpTokensBalance(balance.value.uiAmount!);
-          // need to REDO here ????? 
-          // let balance = await connection.getTokenAccountBalance(lpTokenAccount);
-          const decodedTokenAccountInfo = AccountLayout.decode(accountInfo!.data);
-          setUserLpTokensBalance(Number(decodedTokenAccountInfo.amount.toString()));
+  //       const subId = connection.onAccountChange(lpTokenAccount, (accountInfo) => {
+  //         // const data = perpetual_program.coder.accounts.decode<TokenAccountBalancePair>('TokenAmount', accountInfo.data);
+  //         // setUserLpTokensBalance(balance.value.uiAmount!);
+  //         // need to REDO here ????? 
+  //         // let balance = await connection.getTokenAccountBalance(lpTokenAccount);
+  //         const decodedTokenAccountInfo = AccountLayout.decode(accountInfo!.data);
+  //         setUserLpTokensBalance(Number(decodedTokenAccountInfo.amount.toString()));
 
-        })
-        subIds.push(subId)
+  //       })
+  //       subIds.push(subId)
 
-      }
-    })()
+  //     }
+  //   })()
 
-    return () => {
-      subIds.forEach(subId => {
-        connection.removeAccountChangeListener(subId);
-      });
-    }
-  }, [wallet])
+  //   return () => {
+  //     subIds.forEach(subId => {
+  //       connection.removeAccountChangeListener(subId);
+  //     });
+  //   }
+  // }, [wallet])
 
 
   return (

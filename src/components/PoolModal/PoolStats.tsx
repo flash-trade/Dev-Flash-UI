@@ -20,46 +20,46 @@ export default function PoolStats(props: Props) {
 
   const poolData = usePoolData();
 
-  const userLpTokensBalance = useGlobalStore( state => state.userLpTokensBalance);
+  // const userLpTokensBalance = useGlobalStore( state => state.userLpTokensBalance);
 
 
   const [liquidityBalanceValueUsd, setLiquidityBalanceValueUsd] = useState(0);
   const [liquidityShare, setLiquidityShare] = useState(0);
 
 
-   function getLiquidityBalanceValueUsd() {
+  //  function getLiquidityBalanceValueUsd() {
 
-    let lpSupply = poolData.lpStats.lpTokenSupply.div(new BN(10 ** POOL_CONFIG.lpDecimals));
+  //   let lpSupply = poolData.lpStats.lpTokenSupply.div(new BN(10 ** POOL_CONFIG.lpDecimals));
 
-    console.log("poolData.lpStats.totalPoolValue.toNumber():",poolData.lpStats.totalPoolValue.toNumber())
-    let userLiquidity = ((userLpTokensBalance / lpSupply.toNumber()) * poolData.lpStats.totalPoolValue.toNumber())/ 10**6;
+  //   // console.log("poolData.lpStats.totalPoolValue.toNumber():",poolData.lpStats.totalPoolValue.toString())
+  //   let userLiquidity = ((userLpTokensBalance / lpSupply.toNumber()) * poolData.lpStats.totalPoolValue.toNumber())/ 10**6;
 
-    if (Number.isNaN(userLiquidity)) {
-      return;
-    }
+  //   if (Number.isNaN(userLiquidity)) {
+  //     return;
+  //   }
 
-    setLiquidityBalanceValueUsd(userLiquidity);
-  }
+  //   setLiquidityBalanceValueUsd(userLiquidity);
+  // }
 
-   function getLiquidityShare() {
+  //  function getLiquidityShare() {
     
-    let lpSupply = poolData.lpStats.lpTokenSupply.div(new BN(10 ** POOL_CONFIG.lpDecimals));
+  //   let lpSupply = poolData.lpStats.lpTokenSupply.div(new BN(10 ** POOL_CONFIG.lpDecimals));
 
-    let userShare = (userLpTokensBalance / lpSupply.toNumber()) * 100;
+  //   let userShare = (userLpTokensBalance / lpSupply.toNumber()) * 100;
 
-    if (Number.isNaN(userShare)) {
-      return;
-    }
-    setLiquidityShare(userShare);
-  }
+  //   if (Number.isNaN(userShare)) {
+  //     return;
+  //   }
+  //   setLiquidityShare(userShare);
+  // }
 
-  useEffect(() => {
-    if(userLpTokensBalance){
-      getLiquidityBalanceValueUsd();
-      getLiquidityShare();
-    }
+  // useEffect(() => {
+  //   if(userLpTokensBalance){
+  //     getLiquidityBalanceValueUsd();
+  //     getLiquidityShare();
+  //   }
    
-  }, [userLpTokensBalance, poolData])
+  // }, [userLpTokensBalance, poolData])
   
 
   if (Object.keys(stats).length === 0) {
@@ -78,7 +78,7 @@ export default function PoolStats(props: Props) {
         {[
           {
             label: "Liquidity",
-            value: `$${poolData.lpStats.totalPoolValue.toString()}`,
+            value: `$${ Number(poolData.lpStats.totalPoolValue.toString()) / 10**6}`,
           },
           {
             label: "Volume",

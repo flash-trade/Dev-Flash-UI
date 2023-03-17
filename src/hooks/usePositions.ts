@@ -59,7 +59,7 @@ export function usePositions() {
       data.push(posAcc);
     }
 
-    console.log(">>>>> usePositions positionAccounts:",data, data.length)
+    // console.log(">>>>> usePositions positionAccounts:",data, data.length)
     setPositionAccounts(data);
   };
 

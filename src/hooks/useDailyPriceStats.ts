@@ -57,8 +57,8 @@ const fetchAllStats = (() => {
         let data = firstData;
         const allStats = TOKEN_LIST.reduce((acc, token) => {
           console.log("fetching data all stats");
-          console.log("token", token);
-          console.log("data", data);
+          // console.log("token", token);
+          // console.log("data", data);
           const tokenData = data[getTokenEId(token)];
 
           acc[token] = {

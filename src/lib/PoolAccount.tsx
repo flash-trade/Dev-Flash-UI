@@ -1,7 +1,6 @@
 import { PoolConfig } from "@/utils/PoolConfig";
 import { BN } from "@project-serum/anchor";
 import {  Mint } from "@solana/spl-token";
-import { PublicKey } from "@solana/web3.js";
 import { Custody, Pool, Token } from "../types";
 import { CustodyAccount } from "./CustodyAccount";
 
@@ -40,21 +39,23 @@ export class PoolAccount {
 
     for (const custody of this.poolConfig.custodies) {
       const custodyData = this.custodies.find(t => t.mint.toBase58() === custody.mintKey.toBase58())
+      // console.log("custodyData:",custodyData)
       if(custodyData){
         if (custodyData.isStable) {  
-          stableCoinAmount.add(custodyData.assets.owned)
+          stableCoinAmount = stableCoinAmount.add(custodyData.assets.owned)
+          // console.log("custodyData.assets.owned.toString():",custodyData.assets.owned.toString())
         }
         const priceBN = new BN(prices.get(custody.symbol)* 10**6); // so always keep prices with 6 decimals 
         const custodyValue = priceBN.mul(custodyData.assets.owned);
-        console.log("priceBN,amt ,custodyValue",priceBN.toString(),custodyData.assets.owned.toString() ,custodyValue.toString(), custody.symbol)
-        totalPoolValueUsd.add(custodyValue)
+        totalPoolValueUsd = totalPoolValueUsd.add(custodyValue)
       }
     }
     
-    console.log("totalPoolValueUsd.toNumber():",totalPoolValueUsd.toString())
-    console.log("stableCoinAmount.toNumber():",stableCoinAmount.toString())
+    // console.log("totalPoolValueUsd.toNumber():",totalPoolValueUsd.toString())
+    // console.log("stableCoinAmount.toNumber():",stableCoinAmount.toString())
 
     if(this.lpTokenInfo.supply.toString() =='0' || totalPoolValueUsd.toString()=='0'){
+      console.error("supply or amt cannot be zero")
       throw "supply or amt cannot be zero";
     }
     this.totalPoolValueUsd = totalPoolValueUsd;
@@ -96,10 +97,11 @@ export class PoolAccount {
       const custodyData = this.custodies.find(t => t.mint.toBase58() === custody.mintKey.toBase58())
       const priceBN = new BN(prices.get(custody.symbol)* 10**6); // so always keep prices with 6 decimals 
 
-      if(this.totalPoolValueUsd.toNumber()==-1 || this.totalPoolValueUsd.toString()=='0'){
+      if(this.totalPoolValueUsd.toString()=="-1" || this.totalPoolValueUsd.toString()=='0'){
+        console.error("call getLpStats first")
         throw "call getLpStats first";
       } 
-      console.log("this.totalPoolValueUsd:",this.totalPoolValueUsd.toString())
+      // console.log("this.totalPoolValueUsd:",this.totalPoolValueUsd.toString())
 
       if(custodyData && token) {
         custodyDetails.push({
@@ -126,13 +128,13 @@ export class PoolAccount {
       const custodyData = this.custodies.find(t => t.mint.toBase58() === custody.mintKey.toBase58())
       if (custodyData) {  
         const custodyFeeTotal = Object.values(custodyData.collectedFees).reduce((a: BN, b: BN) => a.add(b), new BN(0))
-        totalFees.add(custodyFeeTotal)
+        totalFees = totalFees.add(custodyFeeTotal)
 
         const custodyVolume = Object.values(custodyData.volumeStats).reduce((a: BN, b: BN) => a.add(b), new BN(0))
-        totalVolume.add(custodyVolume)
+        totalVolume = totalVolume.add(custodyVolume)
 
-        currentLongPositionsUsd.add(custodyData.tradeStats.oiLongUsd)
-        currentShortPositionsUsd.add(custodyData.tradeStats.oiShortUsd)
+        currentLongPositionsUsd = currentLongPositionsUsd.add(custodyData.tradeStats.oiLongUsd)
+        currentShortPositionsUsd = currentShortPositionsUsd.add(custodyData.tradeStats.oiShortUsd)
       }
     }
     return {

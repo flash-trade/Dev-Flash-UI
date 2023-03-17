@@ -417,11 +417,6 @@ export type Perpetuals = {
           "isSigner": false
         },
         {
-          "name": "receivingSolAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
@@ -432,6 +427,45 @@ export type Perpetuals = {
           "name": "params",
           "type": {
             "defined": "WithdrawFeesParams"
+          }
+        }
+      ],
+      "returns": "u8"
+    },
+    {
+      "name": "withdrawSolFees",
+      "accounts": [
+        {
+          "name": "admin",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "multisig",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "transferAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "perpetuals",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "receivingAccount",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": "WithdrawSolFeesParams"
           }
         }
       ],
@@ -1137,6 +1171,88 @@ export type Perpetuals = {
       ]
     },
     {
+      "name": "getAddLiquidityAmountAndFee",
+      "accounts": [
+        {
+          "name": "perpetuals",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "pool",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "custody",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "custodyOracleAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lpTokenMint",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": "GetAddLiquidityAmountAndFeeParams"
+          }
+        }
+      ],
+      "returns": {
+        "defined": "AmountAndFee"
+      }
+    },
+    {
+      "name": "getRemoveLiquidityAmountAndFee",
+      "accounts": [
+        {
+          "name": "perpetuals",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "pool",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "custody",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "custodyOracleAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lpTokenMint",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": "GetRemoveLiquidityAmountAndFeeParams"
+          }
+        }
+      ],
+      "returns": {
+        "defined": "AmountAndFee"
+      }
+    },
+    {
       "name": "getEntryPriceAndFee",
       "accounts": [
         {
@@ -1169,7 +1285,7 @@ export type Perpetuals = {
         }
       ],
       "returns": {
-        "defined": "PriceAndFee"
+        "defined": "NewPositionPricesAndFee"
       }
     },
     {
@@ -1597,11 +1713,9 @@ export type Perpetuals = {
           },
           {
             "name": "borrowRate",
-            "type": "u64"
-          },
-          {
-            "name": "borrowRateSum",
-            "type": "u64"
+            "type": {
+              "defined": "BorrowRateParams"
+            }
           },
           {
             "name": "assets",
@@ -1625,6 +1739,24 @@ export type Perpetuals = {
             "name": "tradeStats",
             "type": {
               "defined": "TradeStats"
+            }
+          },
+          {
+            "name": "longPositions",
+            "type": {
+              "defined": "PositionStats"
+            }
+          },
+          {
+            "name": "shortPositions",
+            "type": {
+              "defined": "PositionStats"
+            }
+          },
+          {
+            "name": "borrowRateState",
+            "type": {
+              "defined": "BorrowRateState"
             }
           },
           {
@@ -1928,7 +2060,11 @@ export type Perpetuals = {
         "kind": "struct",
         "fields": [
           {
-            "name": "amount",
+            "name": "amountIn",
+            "type": "u64"
+          },
+          {
+            "name": "minLpAmountOut",
             "type": "u64"
           }
         ]
@@ -1953,6 +2089,18 @@ export type Perpetuals = {
         "fields": [
           {
             "name": "price",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GetAddLiquidityAmountAndFeeParams",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "amountIn",
             "type": "u64"
           }
         ]
@@ -2025,6 +2173,18 @@ export type Perpetuals = {
       "type": {
         "kind": "struct",
         "fields": []
+      }
+    },
+    {
+      "name": "GetRemoveLiquidityAmountAndFeeParams",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "lpAmountIn",
+            "type": "u64"
+          }
+        ]
       }
     },
     {
@@ -2141,7 +2301,11 @@ export type Perpetuals = {
         "kind": "struct",
         "fields": [
           {
-            "name": "lpAmount",
+            "name": "lpAmountIn",
+            "type": "u64"
+          },
+          {
+            "name": "minAmountOut",
             "type": "u64"
           }
         ]
@@ -2360,14 +2524,7 @@ export type Perpetuals = {
       "name": "UpgradeCustodyParams",
       "type": {
         "kind": "struct",
-        "fields": [
-          {
-            "name": "borrowRate",
-            "type": {
-              "defined": "BorrowRateParams"
-            }
-          }
-        ]
+        "fields": []
       }
     },
     {
@@ -2376,11 +2533,19 @@ export type Perpetuals = {
         "kind": "struct",
         "fields": [
           {
-            "name": "tokenAmount",
+            "name": "amount",
             "type": "u64"
-          },
+          }
+        ]
+      }
+    },
+    {
+      "name": "WithdrawSolFeesParams",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            "name": "solAmount",
+            "name": "amount",
             "type": "u64"
           }
         ]
@@ -2604,11 +2769,27 @@ export type Perpetuals = {
             "type": "u64"
           },
           {
+            "name": "maxInitialLeverage",
+            "type": "u64"
+          },
+          {
             "name": "maxLeverage",
             "type": "u64"
           },
           {
             "name": "maxPayoffMult",
+            "type": "u64"
+          },
+          {
+            "name": "maxUtilization",
+            "type": "u64"
+          },
+          {
+            "name": "maxPositionLockedUsd",
+            "type": "u64"
+          },
+          {
+            "name": "maxTotalLockedUsd",
             "type": "u64"
           }
         ]
@@ -2708,6 +2889,10 @@ export type Perpetuals = {
             "type": "bool"
           },
           {
+            "name": "useUnrealizedPnlInAum",
+            "type": "bool"
+          },
+          {
             "name": "tradeSpreadLong",
             "type": "u64"
           },
@@ -2757,6 +2942,42 @@ export type Perpetuals = {
         "fields": [
           {
             "name": "price",
+            "type": "u64"
+          },
+          {
+            "name": "fee",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AmountAndFee",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "fee",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "NewPositionPricesAndFee",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "entryPrice",
+            "type": "u64"
+          },
+          {
+            "name": "liquidationPrice",
             "type": "u64"
           },
           {
@@ -2913,6 +3134,9 @@ export type Perpetuals = {
             "name": "WithdrawFees"
           },
           {
+            "name": "WithdrawSolFees"
+          },
+          {
             "name": "SetTestOraclePrice"
           },
           {
@@ -2937,6 +3161,26 @@ export type Perpetuals = {
           },
           {
             "name": "Pyth"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AumCalcMode",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Min"
+          },
+          {
+            "name": "Max"
+          },
+          {
+            "name": "Last"
+          },
+          {
+            "name": "EMA"
           }
         ]
       }
@@ -3069,23 +3313,33 @@ export type Perpetuals = {
     },
     {
       "code": 6018,
-      "name": "PoolAmountLimit",
-      "msg": "Pool amount limit exceeded"
+      "name": "CustodyAmountLimit",
+      "msg": "Custody amount limit exceeded"
     },
     {
       "code": 6019,
+      "name": "PositionAmountLimit",
+      "msg": "Position amount limit exceeded"
+    },
+    {
+      "code": 6020,
       "name": "TokenRatioOutOfRange",
       "msg": "Token ratio out of range"
     },
     {
-      "code": 6020,
+      "code": 6021,
       "name": "UnsupportedToken",
       "msg": "Token is not supported"
     },
     {
-      "code": 6021,
+      "code": 6022,
       "name": "InstructionNotAllowed",
       "msg": "Instruction is not allowed at this time"
+    },
+    {
+      "code": 6023,
+      "name": "MaxUtilization",
+      "msg": "Token utilization limit exceeded"
     }
   ]
 };
@@ -3509,11 +3763,6 @@ export const IDL: Perpetuals = {
           "isSigner": false
         },
         {
-          "name": "receivingSolAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
           "name": "tokenProgram",
           "isMut": false,
           "isSigner": false
@@ -3524,6 +3773,45 @@ export const IDL: Perpetuals = {
           "name": "params",
           "type": {
             "defined": "WithdrawFeesParams"
+          }
+        }
+      ],
+      "returns": "u8"
+    },
+    {
+      "name": "withdrawSolFees",
+      "accounts": [
+        {
+          "name": "admin",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "multisig",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "transferAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "perpetuals",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "receivingAccount",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": "WithdrawSolFeesParams"
           }
         }
       ],
@@ -4229,6 +4517,88 @@ export const IDL: Perpetuals = {
       ]
     },
     {
+      "name": "getAddLiquidityAmountAndFee",
+      "accounts": [
+        {
+          "name": "perpetuals",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "pool",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "custody",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "custodyOracleAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lpTokenMint",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": "GetAddLiquidityAmountAndFeeParams"
+          }
+        }
+      ],
+      "returns": {
+        "defined": "AmountAndFee"
+      }
+    },
+    {
+      "name": "getRemoveLiquidityAmountAndFee",
+      "accounts": [
+        {
+          "name": "perpetuals",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "pool",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "custody",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "custodyOracleAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lpTokenMint",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": "GetRemoveLiquidityAmountAndFeeParams"
+          }
+        }
+      ],
+      "returns": {
+        "defined": "AmountAndFee"
+      }
+    },
+    {
       "name": "getEntryPriceAndFee",
       "accounts": [
         {
@@ -4261,7 +4631,7 @@ export const IDL: Perpetuals = {
         }
       ],
       "returns": {
-        "defined": "PriceAndFee"
+        "defined": "NewPositionPricesAndFee"
       }
     },
     {
@@ -4689,11 +5059,9 @@ export const IDL: Perpetuals = {
           },
           {
             "name": "borrowRate",
-            "type": "u64"
-          },
-          {
-            "name": "borrowRateSum",
-            "type": "u64"
+            "type": {
+              "defined": "BorrowRateParams"
+            }
           },
           {
             "name": "assets",
@@ -4717,6 +5085,24 @@ export const IDL: Perpetuals = {
             "name": "tradeStats",
             "type": {
               "defined": "TradeStats"
+            }
+          },
+          {
+            "name": "longPositions",
+            "type": {
+              "defined": "PositionStats"
+            }
+          },
+          {
+            "name": "shortPositions",
+            "type": {
+              "defined": "PositionStats"
+            }
+          },
+          {
+            "name": "borrowRateState",
+            "type": {
+              "defined": "BorrowRateState"
             }
           },
           {
@@ -5020,7 +5406,11 @@ export const IDL: Perpetuals = {
         "kind": "struct",
         "fields": [
           {
-            "name": "amount",
+            "name": "amountIn",
+            "type": "u64"
+          },
+          {
+            "name": "minLpAmountOut",
             "type": "u64"
           }
         ]
@@ -5045,6 +5435,18 @@ export const IDL: Perpetuals = {
         "fields": [
           {
             "name": "price",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GetAddLiquidityAmountAndFeeParams",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "amountIn",
             "type": "u64"
           }
         ]
@@ -5117,6 +5519,18 @@ export const IDL: Perpetuals = {
       "type": {
         "kind": "struct",
         "fields": []
+      }
+    },
+    {
+      "name": "GetRemoveLiquidityAmountAndFeeParams",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "lpAmountIn",
+            "type": "u64"
+          }
+        ]
       }
     },
     {
@@ -5233,7 +5647,11 @@ export const IDL: Perpetuals = {
         "kind": "struct",
         "fields": [
           {
-            "name": "lpAmount",
+            "name": "lpAmountIn",
+            "type": "u64"
+          },
+          {
+            "name": "minAmountOut",
             "type": "u64"
           }
         ]
@@ -5452,14 +5870,7 @@ export const IDL: Perpetuals = {
       "name": "UpgradeCustodyParams",
       "type": {
         "kind": "struct",
-        "fields": [
-          {
-            "name": "borrowRate",
-            "type": {
-              "defined": "BorrowRateParams"
-            }
-          }
-        ]
+        "fields": []
       }
     },
     {
@@ -5468,11 +5879,19 @@ export const IDL: Perpetuals = {
         "kind": "struct",
         "fields": [
           {
-            "name": "tokenAmount",
+            "name": "amount",
             "type": "u64"
-          },
+          }
+        ]
+      }
+    },
+    {
+      "name": "WithdrawSolFeesParams",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            "name": "solAmount",
+            "name": "amount",
             "type": "u64"
           }
         ]
@@ -5696,11 +6115,27 @@ export const IDL: Perpetuals = {
             "type": "u64"
           },
           {
+            "name": "maxInitialLeverage",
+            "type": "u64"
+          },
+          {
             "name": "maxLeverage",
             "type": "u64"
           },
           {
             "name": "maxPayoffMult",
+            "type": "u64"
+          },
+          {
+            "name": "maxUtilization",
+            "type": "u64"
+          },
+          {
+            "name": "maxPositionLockedUsd",
+            "type": "u64"
+          },
+          {
+            "name": "maxTotalLockedUsd",
             "type": "u64"
           }
         ]
@@ -5800,6 +6235,10 @@ export const IDL: Perpetuals = {
             "type": "bool"
           },
           {
+            "name": "useUnrealizedPnlInAum",
+            "type": "bool"
+          },
+          {
             "name": "tradeSpreadLong",
             "type": "u64"
           },
@@ -5849,6 +6288,42 @@ export const IDL: Perpetuals = {
         "fields": [
           {
             "name": "price",
+            "type": "u64"
+          },
+          {
+            "name": "fee",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AmountAndFee",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "fee",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "NewPositionPricesAndFee",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "entryPrice",
+            "type": "u64"
+          },
+          {
+            "name": "liquidationPrice",
             "type": "u64"
           },
           {
@@ -6005,6 +6480,9 @@ export const IDL: Perpetuals = {
             "name": "WithdrawFees"
           },
           {
+            "name": "WithdrawSolFees"
+          },
+          {
             "name": "SetTestOraclePrice"
           },
           {
@@ -6029,6 +6507,26 @@ export const IDL: Perpetuals = {
           },
           {
             "name": "Pyth"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AumCalcMode",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Min"
+          },
+          {
+            "name": "Max"
+          },
+          {
+            "name": "Last"
+          },
+          {
+            "name": "EMA"
           }
         ]
       }
@@ -6161,23 +6659,33 @@ export const IDL: Perpetuals = {
     },
     {
       "code": 6018,
-      "name": "PoolAmountLimit",
-      "msg": "Pool amount limit exceeded"
+      "name": "CustodyAmountLimit",
+      "msg": "Custody amount limit exceeded"
     },
     {
       "code": 6019,
+      "name": "PositionAmountLimit",
+      "msg": "Position amount limit exceeded"
+    },
+    {
+      "code": 6020,
       "name": "TokenRatioOutOfRange",
       "msg": "Token ratio out of range"
     },
     {
-      "code": 6020,
+      "code": 6021,
       "name": "UnsupportedToken",
       "msg": "Token is not supported"
     },
     {
-      "code": 6021,
+      "code": 6022,
       "name": "InstructionNotAllowed",
       "msg": "Instruction is not allowed at this time"
+    },
+    {
+      "code": 6023,
+      "name": "MaxUtilization",
+      "msg": "Token utilization limit exceeded"
     }
   ]
 };

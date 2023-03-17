@@ -68,6 +68,9 @@ export function usePythPrices() {
         const token = tokens.find(f => f.pythTicker === product.symbol)
         if (token) {
           setPrices(token.symbol, price.price ?? 0)
+          console.log("pythConnection.onPriceChange called",token.symbol, price.price)
+        } else {
+          console.log(" else pythConnection.onPriceChange called");
         }
       })
       pythConnection.start()

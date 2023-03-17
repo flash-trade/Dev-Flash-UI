@@ -82,7 +82,7 @@ export function usePoolData() {
 
   const getPoolData = () => {
     const poolConfig = PoolConfig.fromIdsByName(DEFAULT_POOL, CLUSTER);
-    if(!pool || !lpMintData || !prices || !custodies) {
+    if(!pool || !lpMintData || !prices.size || !custodies) {
       return ;
     }
     // const pool = new PoolAccount(poolConfig, poolData, lpMintData, Array.from([custodies.keys(), custodies.values()]).map(t => CustodyAccount.from(new PublicKey(t), {...(custodies.get(t))}))
@@ -92,6 +92,7 @@ export function usePoolData() {
       lpMintData,
       Array.from(custodies, ([key, value]) => CustodyAccount.from(new PublicKey(key), {...value}))
     )
+    // console.log("prices:",prices)
     const lpStats = poolAccount.getLpStats(prices);
     const custodyDetails = poolAccount.getCustodyDetails(prices);
     const r : ViewPoolData =  {

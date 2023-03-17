@@ -36,6 +36,11 @@ export interface SwapAmountAndFees {
    feeOut: BN;
 }
 
+export interface AmountAndFee {
+  amount: BN;
+  fee: BN;
+}
+
 export class ViewHelper {
   program: Program<Perpetuals>;
   connection: Connection;
@@ -336,6 +341,110 @@ export class ViewHelper {
       amountOut: res.amountOut,
       feeIn: res.feeIn,
       feeOut : res.feeOut
+    };
+  };
+
+  getAddLiquidityAmountAndFee = async (
+    amount: BN,
+    poolKey: PublicKey,
+    depositCustodyKey: PublicKey,
+  ): Promise<AmountAndFee> => {
+    let program = new Program(IDL, PERPETUALS_PROGRAM_ID, this.provider);
+
+    const custodies = POOL_CONFIG.custodies;
+    let custodyMetas = [];
+    for (const token of custodies) {
+      custodyMetas.push({
+        isSigner: false,
+        isWritable: false,
+        pubkey: token.custodyAccount,
+      });
+    }
+    for (const custody of custodies) {
+      custodyMetas.push({
+        isSigner: false,
+        isWritable: false,
+        pubkey: custody.oracleAddress,
+      });
+    }
+
+    let transaction = await program.methods
+      // @ts-ignore
+      .getAddLiquidityAmountAndFee({
+        amountIn : amount
+      })
+      .accounts({
+        perpetuals: this.poolConfig.perpetuals,
+        pool: poolKey,
+        custody: depositCustodyKey,
+        custodyOracleAccount:
+          PoolConfig.getCustodyConfig(depositCustodyKey)?.oracleAddress,
+        lpTokenMint: this.poolConfig.lpTokenMint,  
+      })
+      .remainingAccounts([...custodyMetas])
+      .transaction();
+
+    const result = await this.simulateTransaction(transaction);
+    const index = IDL.instructions.findIndex(
+      (f) => f.name === "getAddLiquidityAmountAndFee"
+    );
+    const res: any = this.decodeLogs(result, index);
+
+    return {
+      amount: res.amount,
+      fee : res.fee
+    };
+  };
+
+  getRemoveLiquidityAmountAndFee = async (
+    amount: BN,
+    poolKey: PublicKey,
+    depositCustodyKey: PublicKey,
+  ): Promise<AmountAndFee> => {
+    let program = new Program(IDL, PERPETUALS_PROGRAM_ID, this.provider);
+
+    const custodies = POOL_CONFIG.custodies;
+    let custodyMetas = [];
+    for (const token of custodies) {
+      custodyMetas.push({
+        isSigner: false,
+        isWritable: false,
+        pubkey: token.custodyAccount,
+      });
+    }
+    for (const custody of custodies) {
+      custodyMetas.push({
+        isSigner: false,
+        isWritable: false,
+        pubkey: custody.oracleAddress,
+      });
+    }
+
+    let transaction = await program.methods
+      // @ts-ignore
+      .getRemoveLiquidityAmountAndFee({
+        amountIn : amount
+      })
+      .accounts({
+        perpetuals: this.poolConfig.perpetuals,
+        pool: poolKey,
+        custody: depositCustodyKey,
+        custodyOracleAccount:
+          PoolConfig.getCustodyConfig(depositCustodyKey)?.oracleAddress,
+        lpTokenMint: this.poolConfig.lpTokenMint,  
+      })
+      .remainingAccounts([...custodyMetas])
+      .transaction();
+
+    const result = await this.simulateTransaction(transaction);
+    const index = IDL.instructions.findIndex(
+      (f) => f.name === "getRemoveLiquidityAmountAndFee"
+    );
+    const res: any = this.decodeLogs(result, index);
+
+    return {
+      amount: res.amount,
+      fee : res.fee
     };
   };
 }

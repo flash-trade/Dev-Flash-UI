@@ -172,8 +172,8 @@ console.log("POOL_CONFIG.programId:",POOL_CONFIG.programId.toBase58())
       transaction = transaction.add(removeLiquidityTx);
     }
 
-    console.log("add liquidity tx", transaction);
-    console.log("tx keys");
+    // console.log("add liquidity tx", transaction);
+    // console.log("tx keys");
 
     if (transaction.instructions.length > 0) {
       for (let i = 0; i < transaction.instructions[0]!.keys.length; i++) {
