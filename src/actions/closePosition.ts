@@ -36,8 +36,8 @@ export async function closePosition(
   // TODO: need to take slippage as param , this is now for testing
   const adjustedPrice =
     side.toString() == "Long"
-      ? price.mul(new BN(110)).div(new BN(100))
-      : price.mul(new BN(90)).div(new BN(100));
+      ? price.mul(new BN(90)).div(new BN(100))
+      : price.mul(new BN(110)).div(new BN(100))
   console.log(
     "adjustedPrice, coingeckoPrice:",
     adjustedPrice.toString(),

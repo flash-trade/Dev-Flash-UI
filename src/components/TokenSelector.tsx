@@ -100,6 +100,7 @@ export function TokenSelector(props: Props) {
             )}
             placeholder="0"
             type="number"
+            max={10**8}
             value={decimalTrim(props.amount) || ""}
             onChange={(e) => {
               const text = e.currentTarget.value;

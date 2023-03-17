@@ -94,32 +94,64 @@ export default function LiquidityCard(props: Props) {
 
   // }, [tokenAmount])
   
+  const handleAddLiqUpdate = (inputTokenAmount: number) => {
+    if (!payToken || !prices.get(payToken!)) {
+      console.log("no paytoken price", payToken, prices.get(payToken!))
+      return;
+    }
+    setInputTokenAmount(inputTokenAmount)
+    // console.log("price", payToken,prices.get(payToken!) )
+
+    const payTokenPriceBN = new BN(prices.get(payToken!)! * 10 ** PRICE_DECIMALS); // already handled above
+
+    const poolAumUsd = poolData.lpStats.totalPoolValue;
+    const lpTokenSupply = poolData.lpStats.lpTokenSupply;
+    if (poolAumUsd.toString() !== '0' && lpTokenSupply.toString() !== '0') {
+      // replace 6 with token decimals
+      const depositUsd = new BN(inputTokenAmount * 10 ** 6).mul(payTokenPriceBN).div(new BN(10 ** 6))
+      // console.log("depositUsd:",depositUsd.toString(), inputTokenAmount, payTokenPriceBN.toString())
+      const shareBN = depositUsd.mul(new BN(10 ** 6)).div(poolAumUsd);
+      // console.log("shareBN:",shareBN.toNumber())
+
+      const userLPtokensRecieveBN = lpTokenSupply.mul(shareBN).div(new BN(10 ** 6)); // div share decimals
+      const useLPTokenUi = toUiDecimals(userLPtokensRecieveBN, POOL_CONFIG.lpDecimals, 4);
+      // console.log("useLPTokenUi:",useLPTokenUi)
+      setInputLpTokenAmount(Number(useLPTokenUi))
+    }
+  }
+
+  const handleRemoveLiqUpdate = (inputLPTokenAmount: number) => {
+    if (!payToken || !prices.get(payToken!)) {
+      console.log("no paytoken price", payToken, prices.get(payToken!))
+      return;
+    }
+    setInputLpTokenAmount(inputLPTokenAmount)
+    // console.log("price", payToken,prices.get(payToken!) )
+
+    const payTokenPriceBN = new BN(prices.get(payToken!)! * 10 ** PRICE_DECIMALS); // already handled above
+
+    const poolAumUsd = poolData.lpStats.totalPoolValue;
+    const lpTokenSupply = poolData.lpStats.lpTokenSupply;
+    if (poolAumUsd.toString() !== '0' && lpTokenSupply.toString() !== '0') {
+
+      const lpTokenPrice = poolAumUsd.div(lpTokenSupply);
+      // replace 6 with token decimals
+      const depositUsd = new BN(inputLPTokenAmount * 10 ** 6).mul(lpTokenPrice)
+      // console.log("depositUsd:",depositUsd.toString(), inputTokenAmount, payTokenPriceBN.toString())
+      const shareBN = depositUsd.mul(new BN(10 ** 6)).div(poolAumUsd);
+      // console.log("shareBN:",shareBN.toNumber())
+
+      const userLPtokensRecieveBN = lpTokenSupply.mul(shareBN).div(new BN(10 ** 6)); // div share decimals
+      const useLPTokenUi = toUiDecimals(userLPtokensRecieveBN, POOL_CONFIG.lpDecimals, 4);
+      // console.log("useLPTokenUi:",useLPTokenUi)
+      setInputLpTokenAmount(Number(useLPTokenUi))
+    }
+  }
+
   useEffect(() => {
 
     //  ALL CALCULATIONS IN BN
-    if(!payToken || !prices.get(payToken!)){
-      console.log("no paytoken price", payToken,prices.get(payToken!) )
-      return;
-    }
-    // console.log("price", payToken,prices.get(payToken!) )
-
-    const payTokenPriceBN = new BN(prices.get(payToken!)! * 10**PRICE_DECIMALS ) ; // already handled above
    
-    const poolAumUsd = poolData.lpStats.totalPoolValue;
-    const lpTokenSupply = poolData.lpStats.lpTokenSupply;
-    if(poolAumUsd.toString()!=='0' && lpTokenSupply.toString()!=='0'){
-     
-      // replace 6 with token decimals
-        const depositUsd = new BN(inputTokenAmount * 10**6).mul(payTokenPriceBN).div(new BN(10**6))
-        // console.log("depositUsd:",depositUsd.toString(), inputTokenAmount, payTokenPriceBN.toString())
-        const shareBN = depositUsd.mul(new BN(10**6)).div(poolAumUsd);
-        // console.log("shareBN:",shareBN.toNumber())
-
-        const userLPtokensRecieveBN =  lpTokenSupply.mul(shareBN).div(new BN(10**6)); // div share decimals
-        const useLPTokenUi = toUiDecimals(userLPtokensRecieveBN, POOL_CONFIG.lpDecimals, 4);
-        // console.log("useLPTokenUi:",useLPTokenUi)
-        setInputLpTokenAmount(Number(useLPTokenUi))
-      }
     
   }, [inputTokenAmount, prices, poolData])
   
@@ -218,7 +250,7 @@ export default function LiquidityCard(props: Props) {
               className="mt-2"
               amount={inputTokenAmount}
               token={payToken!}
-              onChangeAmount={setInputTokenAmount}
+              onChangeAmount={handleAddLiqUpdate}
               onSelectToken={setPayToken}
               tokenList={TOKEN_E_LIST}
             />
