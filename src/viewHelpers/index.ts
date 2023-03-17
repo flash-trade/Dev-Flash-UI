@@ -407,7 +407,7 @@ export class ViewHelper {
   getRemoveLiquidityAmountAndFee = async (
     amount: BN,
     poolKey: PublicKey,
-    depositCustodyKey: PublicKey,
+    removeTokenCustodyKey: PublicKey,
   ): Promise<AmountAndFee> => {
     let program = new Program(IDL, PERPETUALS_PROGRAM_ID, this.provider);
 
@@ -431,14 +431,14 @@ export class ViewHelper {
     let transaction = await program.methods
       // @ts-ignore
       .getRemoveLiquidityAmountAndFee({
-        amountIn : amount
+        lpAmountIn : amount
       })
       .accounts({
         perpetuals: this.poolConfig.perpetuals,
         pool: poolKey,
-        custody: depositCustodyKey,
+        custody: removeTokenCustodyKey,
         custodyOracleAccount:
-          PoolConfig.getCustodyConfig(depositCustodyKey)?.oracleAddress,
+          PoolConfig.getCustodyConfig(removeTokenCustodyKey)?.oracleAddress,
         lpTokenMint: this.poolConfig.lpTokenMint,  
       })
       .remainingAccounts([...custodyMetas])

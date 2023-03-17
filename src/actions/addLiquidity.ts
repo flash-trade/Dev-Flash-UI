@@ -133,7 +133,7 @@ console.log("POOL_CONFIG.programId:",POOL_CONFIG.programId.toBase58())
       if (payToken === TokenE.SOL) {
         amount = new BN(tokenAmount * LAMPORTS_PER_SOL);
       } else {
-        amount = new BN(tokenAmount * 10e5);
+        amount = new BN(tokenAmount * 10**payTokenCustody.decimals);
       }
       console.log("amonut:", amount.toString())
       let minLpAmountOut = (new BN(minLiquidityAmountOut * 10** POOL_CONFIG.lpDecimals)).mul(new BN(100-slippage)).div(new BN(100));

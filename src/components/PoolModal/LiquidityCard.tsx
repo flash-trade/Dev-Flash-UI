@@ -10,14 +10,14 @@ import { SidebarTab } from "../SidebarTab";
 import Add from "@carbon/icons-react/lib/Add";
 import Subtract from "@carbon/icons-react/lib/Subtract";
 import { LpSelector } from "./LpSelector";
-import { changeLiquidity } from "src/actions/changeLiquidity";
-import { fetchLPBalance, fetchTokenBalance } from "@/utils/retrieveData";
 
-import { getPerpetualProgramAndProvider, POOL_CONFIG, PRICE_DECIMALS } from "@/utils/constants";
+import {  fetchTokenBalance } from "@/utils/retrieveData";
+
+import {  POOL_CONFIG, PRICE_DECIMALS } from "@/utils/constants";
 import { BN } from "@project-serum/anchor";
 import { useGlobalStore } from "@/stores/store";
 import { usePythPrices } from "@/hooks/usePythPrices";
-import { ViewHelper } from "@/viewHelpers/index";
+
 import { toUiDecimals } from "@/utils/displayUtils";
 import { usePoolData } from "@/hooks/usePoolData";
 import { addLiquidity } from "src/actions/addLiquidity";
@@ -43,7 +43,6 @@ export default function LiquidityCard(props: Props) {
   const {prices} = usePythPrices();
   const poolData = usePoolData();
 
-  // const lpMintData = useGlobalStore(state => state.lpMintData);
   const userLpTokensBalance = useGlobalStore( state => state.userLpTokensBalance);  
 
   const [tab, setTab] = useState(Tab.Add);
@@ -53,6 +52,10 @@ export default function LiquidityCard(props: Props) {
 
   const [inputTokenAmount, setInputTokenAmount] = useState(0);
   const [inputLpTokenAmount, setInputLpTokenAmount] = useState(0);
+
+
+  const setInputTokenAmtGlobal = useGlobalStore(state => state.setInputTokenAmt);
+  const setInputLPTokenAmtGlobal = useGlobalStore(state => state.setInputLPTokenAmt);
 
 
   useEffect(() => {
@@ -75,31 +78,20 @@ export default function LiquidityCard(props: Props) {
     if (publicKey && payToken) {
       fetchData();
     }
-  }, [payToken]);
+  }, [payToken, publicKey]);
 
 
-
-  // useEffect(() => {
-  //   console.log("poolData && poolData.lpStats.totalPoolValue.toNumber():",poolData , poolData.lpStats.totalPoolValue.toNumber())
-  //   if(tokenAmount && payToken && lpMintData && poolData && poolData.lpStats.totalPoolValue.toNumber() ){
-  //     const supply= lpMintData.supply.toString();
-  //     const poolAumBN = poolData.lpStats.totalPoolValue;
-  //     console.log("supply:",supply )
-  //     const depositUsd = tokenAmount * (prices.get(getSymbol(payToken)) ?? 0);
-  //     console.log("poolAumBN:",poolAumBN.toString())
-  //     const shareBN = (new BN(depositUsd)).div(poolAumBN);
-  //     const userLPShare =  (new BN(supply)).mul(shareBN).div(new BN(10 ** lpMintData.decimals));
-  //     setUserLPShare(userLPShare.toNumber());
-  //   }
-
-  // }, [tokenAmount])
-  
   const handleAddLiqUpdate = (inputTokenAmount: number) => {
     if (!payToken || !prices.get(payToken!)) {
       console.log("no paytoken price", payToken, prices.get(payToken!))
       return;
     }
     setInputTokenAmount(inputTokenAmount)
+    if(inputTokenAmount<1){
+      setInputTokenAmtGlobal(1)
+    } else {
+      setInputTokenAmtGlobal(inputTokenAmount)
+    }
     // console.log("price", payToken,prices.get(payToken!) )
 
     const payTokenPriceBN = new BN(prices.get(payToken!)! * 10 ** PRICE_DECIMALS); // already handled above
@@ -126,7 +118,16 @@ export default function LiquidityCard(props: Props) {
       return;
     }
     setInputLpTokenAmount(inputLPTokenAmount)
-    // console.log("price", payToken,prices.get(payToken!) )
+    if(inputLPTokenAmount<1){
+    setInputLPTokenAmtGlobal(1)
+    } else {
+      setInputLPTokenAmtGlobal(inputLPTokenAmount)
+    }
+
+    const payTokenCustody = POOL_CONFIG.custodies.find(i => i.symbol=== payToken);
+    if(!payTokenCustody){
+      throw "payTokenCustody  not found";
+    }
 
     const payTokenPriceBN = new BN(prices.get(payToken!)! * 10 ** PRICE_DECIMALS); // already handled above
 
@@ -135,30 +136,22 @@ export default function LiquidityCard(props: Props) {
     if (poolAumUsd.toString() !== '0' && lpTokenSupply.toString() !== '0') {
 
       const lpTokenPrice = poolAumUsd.div(lpTokenSupply);
+      console.log("lpTokenPrice:",lpTokenPrice.toString())
       // replace 6 with token decimals
-      const depositUsd = new BN(inputLPTokenAmount * 10 ** 6).mul(lpTokenPrice)
-      // console.log("depositUsd:",depositUsd.toString(), inputTokenAmount, payTokenPriceBN.toString())
-      const shareBN = depositUsd.mul(new BN(10 ** 6)).div(poolAumUsd);
+      const depositUsd = new BN(inputLPTokenAmount * 10 ** POOL_CONFIG.lpDecimals).mul(lpTokenPrice)
+      console.log("depositUsd:",depositUsd.toString(), inputLPTokenAmount, payTokenPriceBN.toString())
+      // const shareBN = depositUsd.mul(new BN(10 ** 6)).div(poolAumUsd);
       // console.log("shareBN:",shareBN.toNumber())
 
-      const userLPtokensRecieveBN = lpTokenSupply.mul(shareBN).div(new BN(10 ** 6)); // div share decimals
-      const useLPTokenUi = toUiDecimals(userLPtokensRecieveBN, POOL_CONFIG.lpDecimals, 4);
+      const usertokensRecieveBN = depositUsd.mul(new BN(10 ** payTokenCustody.decimals)).div(payTokenPriceBN); // div share decimals
+      const useTokenUi = toUiDecimals(usertokensRecieveBN, payTokenCustody.decimals, 4);
       // console.log("useLPTokenUi:",useLPTokenUi)
-      setInputLpTokenAmount(Number(useLPTokenUi))
+      setInputTokenAmount(Number(useTokenUi))
+    } else {
+      console.error("error  lpTokenSupply zero ", lpTokenSupply.toString())
     }
   }
 
-  useEffect(() => {
-
-    //  ALL CALCULATIONS IN BN
-   
-    
-  }, [inputTokenAmount, prices, poolData])
-  
-
-  // useEffect(() => {
-  //   console.log("price", payToken, prices?.get(payToken!) )
-  // }, [prices])
   
 
 
@@ -258,7 +251,7 @@ export default function LiquidityCard(props: Props) {
             <LpSelector
               className="mt-2"
               amount={inputLpTokenAmount}
-              onChangeAmount={setInputLpTokenAmount}
+              onChangeAmount={handleRemoveLiqUpdate}
             />
           )}
         </div>
@@ -288,7 +281,7 @@ export default function LiquidityCard(props: Props) {
           </div>
 
           {tab === Tab.Add ? (
-            <LpSelector className="mt-2" amount={inputLpTokenAmount} />
+            <LpSelector className="mt-2" amount={inputLpTokenAmount}  />
           ) : (
             <TokenSelector
               className="mt-2"

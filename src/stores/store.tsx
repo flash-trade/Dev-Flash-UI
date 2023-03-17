@@ -22,6 +22,12 @@ interface StoreState {
   custodies: Map<string, Custody>;
   setCustodies: (custodies: Map<string, Custody>) => void;
   addCustody: (custodyPk: string, custody: Custody) => void;
+
+  // simple inputs
+  inputTokenAmt: number;
+  setInputTokenAmt: (amt: number) => void;
+  inputLPTokenAmt: number;
+  setInputLPTokenAmt: (amt: number) => void;
 }
 
 export const useGlobalStore = create<StoreState>()(
@@ -57,6 +63,10 @@ export const useGlobalStore = create<StoreState>()(
       return { custodies: custodies }
     }),
 
+    inputTokenAmt: 1,
+    setInputTokenAmt: (amt : number) => set({ inputTokenAmt: amt }),
+    inputLPTokenAmt: 1,
+    setInputLPTokenAmt: (amt : number) => set({ inputLPTokenAmt: amt }),
     
   }),
     {
