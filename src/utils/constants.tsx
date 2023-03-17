@@ -13,7 +13,7 @@ import { PoolConfig } from "./PoolConfig";
 
 export const RATE_DECIMALS = 9; // borow rate 
 export const CLUSTER: Cluster = process.env.NEXT_CLUSTER as Cluster || 'devnet';
-export const DEFAULT_POOL: string = process.env.NEXT_DEFAULT_POOL || 'FlashPool1';
+export const DEFAULT_POOL: string = process.env.NEXT_DEFAULT_POOL || 'FlashPool2';
 
 export const POOL_CONFIG = PoolConfig.fromIdsByName(DEFAULT_POOL, CLUSTER);
 
