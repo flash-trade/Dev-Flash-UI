@@ -12,6 +12,8 @@ import {
   RpcResponseAndContext,
   SimulatedTransactionResponse,
   Transaction,
+  TransactionMessage,
+  VersionedTransaction,
 } from "@solana/web3.js";
 import { IDL, Perpetuals } from "@/target/types/perpetuals";
 import { PoolConfig } from "@/utils/PoolConfig";
@@ -65,7 +67,16 @@ export class ViewHelper {
     transaction: Transaction
   ): Promise<RpcResponseAndContext<SimulatedTransactionResponse>> => {
     transaction.feePayer = DEFAULT_PERPS_USER.publicKey;
-    return this.connection.simulateTransaction(transaction);
+    let latestBlockhash = await this.connection.getLatestBlockhash('confirmed');
+
+    const messageV0 = new TransactionMessage({
+      payerKey: this.provider.publicKey ?? DEFAULT_PERPS_USER.publicKey,
+      recentBlockhash: latestBlockhash.blockhash,
+      instructions: transaction.instructions
+    }).compileToV0Message();
+
+    const transaction2 = new VersionedTransaction(messageV0)
+    return this.connection.simulateTransaction(transaction2, { sigVerify: false, replaceRecentBlockhash: true })
   };
 
   decodeLogs<T>(
