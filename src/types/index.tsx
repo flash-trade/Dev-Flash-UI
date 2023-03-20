@@ -165,11 +165,17 @@ export interface TradeStats {
     oiShortUsd: BN;
 }
 
+//  simple type cannot be used as anchor somehow makes it a object while parseing 
 export enum Side {
     None,
     Long,
     Short,
 }
+// export class Side {
+//     static None = { None: {} };
+//     static Long = { Long: {} };
+//     static Short = { Short: {} };
+//   }
 
 export interface Position {
     owner: PublicKey,

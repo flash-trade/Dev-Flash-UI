@@ -116,8 +116,12 @@ export class PoolAccount {
           symbol: custody.symbol,
           price: new BN(prices.get(custody.symbol)),
           targetWeight: token.targetRatio,
-          currentWeight: (custodyData.assets.owned.mul(priceBN)).mul(new BN(10**PERCENTAGE_DECIMALS)).div(this.totalPoolValueUsd).div(new BN(10**custody.decimals)), 
-          utilization: toUiDecimals(custodyData.assets.locked.mul(new BN(10**PERCENTAGE_DECIMALS)).div(custodyData.assets.owned), PERCENTAGE_DECIMALS, 2),
+          currentWeight:  this.totalPoolValueUsd.toNumber() ?
+            (custodyData.assets.owned.mul(priceBN)).mul(new BN(10**PERCENTAGE_DECIMALS)).div(this.totalPoolValueUsd).div(new BN(10**custody.decimals))
+            : '0', 
+          utilization: custodyData.assets.owned.toNumber() ?
+           toUiDecimals(custodyData.assets.locked.mul(new BN(10**PERCENTAGE_DECIMALS)).div(custodyData.assets.owned), PERCENTAGE_DECIMALS, 2)
+           : '0',
           // assetsAmountUi : (custodyData.assets.owned.toNumber() / 10**(custody.decimals)).toFixed(4),
           assetsAmountUi :  toUiDecimals(custodyData.assets.owned, custody.decimals,4, true),
           // totalUsdAmountUi : ((custodyData.assets.owned.mul(priceBN)).div(new BN(10**(custody.decimals))).toNumber() / 10**6).toFixed(4),

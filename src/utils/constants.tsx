@@ -24,6 +24,11 @@ export const POOL_CONFIG = PoolConfig.fromIdsByName(DEFAULT_POOL, CLUSTER);
 
 export const PERPETUALS_PROGRAM_ID = new PublicKey(POOL_CONFIG.programId);
 
+export const SOL_MINT_ADDRESS =  POOL_CONFIG.tokens.find(i => i.symbol=='SOL')?.mintKey?.toBase58() ?? "NOT_FOUND_IN_CONFIG";
+export const USDC_MINT_ADDRESS = POOL_CONFIG.tokens.find(i => i.symbol=='USDC')?.mintKey?.toBase58() ?? "NOT_FOUND_IN_CONFIG";
+export const BTC_MINT_ADDRESS = POOL_CONFIG.tokens.find(i => i.symbol=='BTC')?.mintKey?.toBase58() ?? "NOT_FOUND_IN_CONFIG";
+export const ETH_MINT_ADDRESS = POOL_CONFIG.tokens.find(i => i.symbol=='ETH')?.mintKey?.toBase58() ?? "NOT_FOUND_IN_CONFIG";
+
 // export const PERPETUALS_PROGRAM_ID = new PublicKey(
 //   PerpetualsJson["metadata"]["address"]
 // );

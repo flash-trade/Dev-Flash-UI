@@ -27,6 +27,7 @@ import {
   SystemProgram,
   Transaction,
 } from "@solana/web3.js";
+import { Side } from "../types";
 
 export async function openPosition(
   wallet: Wallet,
@@ -44,24 +45,25 @@ export async function openPosition(
 
   // TODO: need to take slippage as param , this is now for testing
   const newPrice =
-    side.toString() == "Long"
-      ? price.mul(new BN(115)).div(new BN(100))
+    side == Side.Long
+      ? price.mul(new BN(110)).div(new BN(100))
       : price.mul(new BN(90)).div(new BN(100));
   console.log(
-    "inputs",
+    ">> openPosition inputs",
     Number(payAmount),
     Number(positionAmount),
     Number(price),
     Number(newPrice),
     payToken,
     side,
-    side.toString()
+    side == Side.Long,
   );
 
   const payTokenCustody = POOL_CONFIG.custodies.find(i => i.mintKey.toBase58()=== getTokenAddress(payToken));
   if(!payTokenCustody){
     throw "poolTokenCustody  not found";
   }
+  console.log("payTokenCustody:",payTokenCustody)
 
   let userCustodyTokenAccount = await getAssociatedTokenAddress(
     new PublicKey(getTokenAddress(payToken)),
@@ -80,7 +82,7 @@ export async function openPosition(
       publicKey.toBuffer(),
       POOL_CONFIG.poolAddress.toBuffer(),
       payTokenCustody.custodyAccount.toBuffer(),
-      side.toString() == "Long" ?  Buffer.from([1]) :  Buffer.from([2]),
+      side == Side.Long ?  Buffer.from([1]) :  Buffer.from([2]), // in base58 1=2 , 2=3 
     ],
     perpetual_program.programId
   )[0];
@@ -134,7 +136,7 @@ export async function openPosition(
       price: newPrice,
       collateral: payAmount,
       size: positionAmount,
-      side: side.toString() == "Long" ? TradeSide.Long : TradeSide.Short,
+      side: side == Side.Long ? TradeSide.Long : TradeSide.Short,
     };
     let tx = await perpetual_program.methods
       .openPosition(params)

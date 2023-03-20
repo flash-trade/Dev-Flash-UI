@@ -56,11 +56,12 @@ export function usePositions() {
       if(!positions.has(accInfo.publicKey.toBase58())){
         addPosition(accInfo.publicKey.toBase58(), accInfo.account as unknown as Position)
       }
+      console.log("accInfo.account:",accInfo.account)
       let posAcc =  await PositionAccount.from(View,accInfo.publicKey, accInfo.account as unknown as Position);
       data.push(posAcc);
     }
 
-    // console.log(">>>>> usePositions positionAccounts:",data, data.length)
+    console.log(">>>>> usePositions positionAccounts:",data, data.length)
     setPositionAccounts(data);
   };
 

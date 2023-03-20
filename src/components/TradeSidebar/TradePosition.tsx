@@ -13,16 +13,16 @@ import { openPosition } from "src/actions/openPosition";
 
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { BN } from "@project-serum/anchor";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 import { fetchTokenBalance } from "@/utils/retrieveData";
 
 import { usePositions } from "@/hooks/usePositions";
-import { getPerpetualProgramAndProvider, POOL_CONFIG, RATE_DECIMALS } from "@/utils/constants";
+import { getPerpetualProgramAndProvider, POOL_CONFIG, PRICE_DECIMALS, RATE_DECIMALS } from "@/utils/constants";
 import {  ViewHelper } from "@/viewHelpers/index";
 import { Side } from "@/types/index";
 import { useGlobalStore } from "@/stores/store";
 import { usePythPrices } from "@/hooks/usePythPrices";
+import { sleep } from "@/utils/TransactionHandlers";
 
 interface Props {
   className?: string;
@@ -100,7 +100,7 @@ export function TradePosition(props: Props) {
     // console.log("passing :",payAmount, positionAmount)
     //  const entryPrice = allPriceStats[positionToken]?.currentPrice * payAmount || 0;
     const r = await View.getEntryPriceAndFee( new BN(payAmount * 10**(positionTokenCustody?.decimals!)), new BN(positionAmount * 10**(positionTokenCustody?.decimals!)) ,props.side as any , POOL_CONFIG.poolAddress, positionTokenCustody?.custodyAccount!)
-    console.log('r :>> ', r);
+    // console.log('getEntryPriceAndFee :>> ', r);
     // console.log("getEntryPriceAndFee, setEntryFee: ",r.price.toNumber(), r.fee.toNumber());
     const price = r.price.toNumber()/ 10**6; 
     setEntryPrice(price);
@@ -130,7 +130,9 @@ export function TradePosition(props: Props) {
   
 
   useEffect(() => {
-    setPositionToken(asTokenE(pair!.split("-")[0]));
+    // pair = BTC-USDC
+    const tokenSymbol = pair!.split("-")[0];
+    setPositionToken(asTokenE(tokenSymbol));
   }, [pair]);
 
   useEffect(() => {
@@ -150,6 +152,9 @@ export function TradePosition(props: Props) {
   }, [connection, payToken, publicKey]);
 
   async function handleTrade() {
+
+    const positionTokenCustody = POOL_CONFIG.custodies.find(i => i.mintKey.toBase58()=== getTokenAddress(positionToken));
+
     await openPosition(
       wallet!,
       publicKey,
@@ -157,12 +162,15 @@ export function TradePosition(props: Props) {
       connection,
       payToken,
       positionToken,
-      new BN(payAmount * LAMPORTS_PER_SOL),
-      new BN(positionAmount * LAMPORTS_PER_SOL),
-      new BN((prices.get(payToken) ?? 0) * 10 ** 6),
+      new BN(payAmount * 10**(positionTokenCustody?.decimals!)),
+      new BN(positionAmount * 10**(positionTokenCustody?.decimals!)),
+      new BN((prices.get(payToken) ?? 0) * 10 ** PRICE_DECIMALS),
       props.side
     );
     // fetch and add to store
+    console.log("sleep 5sec")
+    await sleep(5000)
+    console.log("after sleep calling fetchPositions")
     fetchPositions();
   }
 
@@ -205,7 +213,7 @@ export function TradePosition(props: Props) {
           })}
         />
         <div className="mt-4 text-sm font-medium text-white">
-          You {props.side === 1 ? "Long" : "Short"}
+          You {props.side === Side.Long ? "Long" : "Short"}
         </div>
         <TokenSelector
           className="mt-2"

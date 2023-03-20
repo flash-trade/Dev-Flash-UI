@@ -30,6 +30,20 @@
           "decimals": 9,
           "isStable": false,
           "pythTicker" : "Crypto.SOL/USD"
+        },
+        {
+          "symbol": "BTC",
+          "mintKey": "B8DYqbh57aEPRbUq7reyueY6jaYoN75js5YsiM84tFfP",
+          "decimals": 6,
+          "isStable": false,
+          "pythTicker" : "Crypto.BTC/USD"
+        },
+        {
+          "symbol": "ETH",
+          "mintKey": "BA17bkYW78GvnirtgRHcceQxZdwkhpzbvrwDU6voUXRz",
+          "decimals": 6,
+          "isStable": false,
+          "pythTicker" : "Crypto.ETH/USD"
         }
       ],
       "custodies": [
@@ -50,7 +64,26 @@
           "decimals": 9,
           "isStable": false,
           "oracleAddress": "J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix"
+        },
+        {
+          "custodyAccount": "463aUWTjWeknez64bRum49Yb2U6PPN9ZyMLnED18Pa3s",
+          "tokenAccount": "DJQM6vZo9m1GBLXFw2j462PkZvakcyojfh1998ZjCddu",
+          "symbol": "BTC",
+          "mintKey": "B8DYqbh57aEPRbUq7reyueY6jaYoN75js5YsiM84tFfP",
+          "decimals": 6,
+          "isStable": false,
+          "oracleAddress": "HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J"
+        },
+        {
+          "custodyAccount": "8iWWSGLtyvirBQuXSepiL6j35zrHeYuFeuSmJUSg47p2",
+          "tokenAccount": "FAotYkhRtGbDeVrWCB2V3dXQxEtHuXjm4Xez1WDhgEM1",
+          "symbol": "ETH",
+          "mintKey": "BA17bkYW78GvnirtgRHcceQxZdwkhpzbvrwDU6voUXRz",
+          "decimals": 6,
+          "isStable": false,
+          "oracleAddress": "EdVCmQ9FSPcVe5YySXDPCRmc8aDQLKJ9xvYBMZPie1Vw"
         }
+
       ]
     },
     {

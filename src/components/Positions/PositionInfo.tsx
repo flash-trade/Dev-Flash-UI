@@ -1,5 +1,5 @@
 import { twMerge } from "tailwind-merge";
-import { cloneElement } from "react";
+import { cloneElement, useEffect } from "react";
 import GrowthIcon from "@carbon/icons-react/lib/Growth";
 import EditIcon from "@carbon/icons-react/lib/Edit";
 import ChevronDownIcon from "@carbon/icons-react/lib/ChevronDown";
@@ -10,7 +10,7 @@ import { getTokenEIcon, getTokenELabel, asTokenE } from "@/utils/TokenUtils";
 import { PositionColumn } from "./PositionColumn";
 import { PositionValueDelta } from "./PositionValueDelta";
 import { Side } from "@/types/index";
-import { PositionAccount } from "@/lib/PositionAccount";
+import { PositionAccount, TradeSide } from "@/lib/PositionAccount";
 
 function formatPrice(num: number) {
   const formatter = new Intl.NumberFormat("en", {
@@ -29,6 +29,13 @@ interface Props {
 
 export function PositionInfo(props: Props) {
   const tokenIcon = getTokenEIcon(props.position.custodyConfig.symbol);
+
+  useEffect(() => {
+
+    console.log("PositionInfo props: ",props.position.side, props.position.side == TradeSide.Long)
+    
+  }, [props])
+  
 
   return (
     <div className={twMerge("flex", "items-center", "py-5", props.className)}>
@@ -67,18 +74,18 @@ export function PositionInfo(props: Props) {
             "items-center",
             "mt-1",
             "space-x-1",
-            props.position.side === Side.Long
+            props.position.side as TradeSide  == TradeSide.Long
               ? "text-emerald-400"
               : "text-rose-400"
           )}
         >
-          {props.position.side === Side.Long ? (
+          {props.position.side == Side.Long ? (
             <GrowthIcon className="h-3 w-3 fill-current" />
           ) : (
             <GrowthIcon className="h-3 w-3 -scale-y-100 fill-current" />
           )}
           <div className="text-sm">
-            {props.position.side === Side.Long ? "Long" : "Short"}
+            {props.position.side as TradeSide  == TradeSide.Long ? "Long" : "Short"}
           </div>
         </div>
       </PositionColumn>

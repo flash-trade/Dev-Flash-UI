@@ -11,6 +11,8 @@ import { usePositions } from "@/hooks/usePositions";
 import { PositionAccount } from "@/lib/PositionAccount";
 import { asTokenE } from "@/utils/TokenUtils";
 import { usePythPrices } from "@/hooks/usePythPrices";
+import { sleep } from "@/utils/TransactionHandlers";
+import { PRICE_DECIMALS } from "@/utils/constants";
 
 function formatPrice(num: number) {
   const formatter = new Intl.NumberFormat("en", {
@@ -35,9 +37,9 @@ export function PositionAdditionalInfo(props: Props) {
   const { fetchPositions } = usePositions();
 
   async function handleCloseTrade() {
-    console.log("in close trade");
+    console.log(">>> in close trade");
     await closePosition(
-      wallet,
+      wallet!,
       publicKey,
       signTransaction,
       connection,
@@ -45,9 +47,12 @@ export function PositionAdditionalInfo(props: Props) {
       positionToken,
       props.position.publicKey.toBase58(),
       props.position.side,
-      new BN((prices.get(payToken) ?? 0) * 10 ** 6)
+      new BN((prices.get(payToken) ?? 0) * 10 ** PRICE_DECIMALS)
     );
-
+    // fetch and add to store
+    console.log("sleep 5sec")
+    await sleep(5000);
+    console.log("after sleep calling fetchPositions")
     fetchPositions();
   }
 
