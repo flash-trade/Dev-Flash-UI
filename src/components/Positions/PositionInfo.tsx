@@ -9,8 +9,8 @@ import NewTab from "@carbon/icons-react/lib/NewTab";
 import { getTokenEIcon, getTokenELabel, asTokenE } from "@/utils/TokenUtils";
 import { PositionColumn } from "./PositionColumn";
 import { PositionValueDelta } from "./PositionValueDelta";
-import { Side } from "@/types/index";
-import { PositionAccount, TradeSide } from "@/lib/PositionAccount";
+import { isVariant, Side } from "@/types/index";
+import { PositionAccount } from "@/lib/PositionAccount";
 
 function formatPrice(num: number) {
   const formatter = new Intl.NumberFormat("en", {
@@ -32,7 +32,7 @@ export function PositionInfo(props: Props) {
 
   useEffect(() => {
 
-    console.log("PositionInfo props: ",props.position.side, props.position.side == TradeSide.Long)
+    console.log("PositionInfo props: ",props.position.side, Side.Long,  isVariant(props.position.side, 'long'))
     
   }, [props])
   
@@ -74,18 +74,24 @@ export function PositionInfo(props: Props) {
             "items-center",
             "mt-1",
             "space-x-1",
-            props.position.side as TradeSide  == TradeSide.Long
+            isVariant(props.position.side, 'long')
               ? "text-emerald-400"
               : "text-rose-400"
           )}
         >
-          {props.position.side == Side.Long ? (
-            <GrowthIcon className="h-3 w-3 fill-current" />
-          ) : (
-            <GrowthIcon className="h-3 w-3 -scale-y-100 fill-current" />
-          )}
+          { 
+             isVariant(props.position.side, 'long')
+            ? 
+              <GrowthIcon className="h-3 w-3 fill-current" />
+            
+            : 
+              <GrowthIcon className="h-3 w-3 -scale-y-100 fill-current" />
+        
+          }
           <div className="text-sm">
-            {props.position.side as TradeSide  == TradeSide.Long ? "Long" : "Short"}
+            {
+                isVariant(props.position.side, 'long')
+               ? "Long" : "Short"}
           </div>
         </div>
       </PositionColumn>

@@ -19,6 +19,7 @@ import { IDL, Perpetuals } from "@/target/types/perpetuals";
 import { PoolConfig } from "@/utils/PoolConfig";
 import { decode } from "@project-serum/anchor/dist/cjs/utils/bytes/base64";
 import { IdlCoder } from "@/utils/IdlCoder";
+import { Side } from "../types";
 
 export type PositionSide = "long" | "short";
 
@@ -153,7 +154,7 @@ export class ViewHelper {
   getEntryPriceAndFee = async (
     collateral: BN,
     size: BN,
-    side: PositionSide,
+    side: Side,
     poolKey: PublicKey,
     custodyKey: PublicKey
   ): Promise<NewPositonPricesAndFee> => {
@@ -165,7 +166,7 @@ export class ViewHelper {
       .getEntryPriceAndFee({
         collateral,
         size,
-        side: side === "long" ? { long: {} } : { short: {} },
+        side: side,
       })
       .accounts({
         perpetuals: this.poolConfig.perpetuals,

@@ -2,14 +2,9 @@ import { POOL_CONFIG } from "@/utils/constants";
 import { CustodyConfig } from "@/utils/PoolConfig";
 import { BN } from "@project-serum/anchor";
 import { Connection, PublicKey } from "@solana/web3.js";
-import { Position, Side } from "../types";
+import { isVariant, Position, Side } from "../types";
 import { ViewHelper } from "../viewHelpers";
 
-
-export class TradeSide {
-  static Long = { long: {} };
-  static Short = { short: {} };
-}
 
 // export interface PositionDisplayData {
 
@@ -63,7 +58,7 @@ export class PositionAccount {
     },
   ): Promise<PositionAccount> {
 
-    // console.log("PositionAccount from:",obj)
+    // console.log("PositionAccount from:",obj , obj.side , isVariant(obj.side, 'long') , isVariant(obj.side, 'short'))
     
     const custodyConfig  =  POOL_CONFIG.custodies.find(i => i.custodyAccount.toBase58() == obj.custody.toBase58());
     let liquidationPriceUsd = await this.getLiquidationPrice(View, obj.pool,obj.custody, publicKey);

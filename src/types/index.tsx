@@ -1,6 +1,31 @@
 import { BN } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
 
+//  taken from drift 
+export function isVariant(object: any, type: string) {
+	return object.hasOwnProperty(type);
+}
+
+// isOneOfVariant(side, ['long', 'short']
+export function isOneOfVariant(object: any, types: string[]) {
+	return types.reduce((result, type) => {
+		return result || object.hasOwnProperty(type);
+	}, false);
+}
+
+//  simple type cannot be used as anchor somehow makes it a object while parseing 
+// export enum Side {
+//     None,
+//     Long,
+//     Short,
+// }
+export class Side {
+    static None = { none: {} };
+    static Long = { long: {} };
+    static Short = { short: {} };
+  }
+
+
 export interface Pool {
     name: string;
     tokens: Token[];
@@ -165,17 +190,7 @@ export interface TradeStats {
     oiShortUsd: BN;
 }
 
-//  simple type cannot be used as anchor somehow makes it a object while parseing 
-export enum Side {
-    None,
-    Long,
-    Short,
-}
-// export class Side {
-//     static None = { None: {} };
-//     static Long = { Long: {} };
-//     static Short = { Short: {} };
-//   }
+
 
 export interface Position {
     owner: PublicKey,

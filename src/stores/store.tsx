@@ -5,10 +5,10 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
 interface StoreState {
-  positions: Map<string, Position>;
-  setPositions: (positions: Map<string, Position>) => void;
-  addPosition: (positionPk: string, position: Position) => void;
-  removePosition: (positionPk: string) => void;
+  // positions: Map<string, Position>;
+  // setPositions: (positions: Map<string, Position>) => void;
+  // addPosition: (positionPk: string, position: Position) => void;
+  // removePosition: (positionPk: string) => void;
 
 
   userLpTokensBalance: BN;
@@ -33,18 +33,18 @@ interface StoreState {
 export const useGlobalStore = create<StoreState>()(
   devtools((set, _get) => ({
     devtools: false,
-    positions: new Map<string, Position>(),
-    setPositions: (positions: Map<string, Position>) => set({ positions }),
-    addPosition: (positionPk: string, position: Position) => set((state) => {
-      const positions = new Map<string, Position>(state.positions);
-      positions.set(positionPk, position)
-      return { positions: positions }
-    }),
-    removePosition: (positionPk: string) => set((state) => {
-      let positions = new Map<string, Position>(state.positions);
-      positions.delete(positionPk)
-      return { positions: positions }
-    }),
+    // positions: new Map<string, Position>(),
+    // setPositions: (positions: Map<string, Position>) => set({ positions }),
+    // addPosition: (positionPk: string, position: Position) => set((state) => {
+    //   const positions = new Map<string, Position>(state.positions);
+    //   positions.set(positionPk, position)
+    //   return { positions: positions }
+    // }),
+    // removePosition: (positionPk: string) => set((state) => {
+    //   let positions = new Map<string, Position>(state.positions);
+    //   positions.delete(positionPk)
+    //   return { positions: positions }
+    // }),
     
     userLpTokensBalance: new BN(0),
     setUserLpTokensBalance: (lpTokens : BN) => set({ userLpTokensBalance: lpTokens }),

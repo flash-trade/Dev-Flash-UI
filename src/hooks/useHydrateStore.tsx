@@ -17,7 +17,7 @@ export const useHydrateStore = () => {
   const { connection } = useConnection();
   const wallet = useAnchorWallet();
 
-  const addPosition = useGlobalStore(state => state.addPosition);
+  // const addPosition = useGlobalStore(state => state.addPosition);
 
   const addCustody = useGlobalStore(state => state.addCustody);
   const setPoolData = useGlobalStore(state => state.setPool);
@@ -116,37 +116,37 @@ export const useHydrateStore = () => {
     }
   }, [])
 
-  useEffect(() => {
-    // const subIds: number[] = [];
-    (async () => {
-      if(!wallet || !wallet.publicKey) return;
+// for now NO store positions just usePositions
+  // useEffect(() => {
+  //   // const subIds: number[] = [];
+  //   (async () => {
+  //     if(!wallet || !wallet.publicKey) return;
 
-      let { perpetual_program } = await getPerpetualProgramAndProvider();
-      let fetchedPositions = await perpetual_program.account.position.all([
-        {
-          memcmp: {
-            offset: 8,
-            bytes: wallet.publicKey.toBase58(),
-          },
-        },
-      ]);
+  //     let { perpetual_program } = await getPerpetualProgramAndProvider();
+  //     let fetchedPositions = await perpetual_program.account.position.all([
+  //       {
+  //         memcmp: {
+  //           offset: 8,
+  //           bytes: wallet.publicKey.toBase58(),
+  //         },
+  //       },
+  //     ]);
 
-      for (const position of fetchedPositions) {
-          addPosition(position.publicKey.toBase58(), position.account as unknown as Position)
-        // const subId = connection.onAccountChange(position.publicKey, (accountInfo) => {
-        //   const positionData = perpetual_program.coder.accounts.decode<Custody>('position', accountInfo.data);
-        //   addCustody(position.publicKey.toBase58(), positionData)
-        // })
-        // subIds.push(subId)
-      }
-    })()
-
-    // return () => {
-    //   subIds.forEach(subId => {
-    //     connection.removeAccountChangeListener(subId);
-    //   });
-    // }
-  }, [])
+  //     for (const position of fetchedPositions) {
+  //         addPosition(position.publicKey.toBase58(), position.account as unknown as Position)
+  //       const subId = connection.onAccountChange(position.publicKey, (accountInfo) => {
+  //         const positionData = perpetual_program.coder.accounts.decode<Custody>('position', accountInfo.data);
+  //         addCustody(position.publicKey.toBase58(), positionData)
+  //       })
+  //       subIds.push(subId)
+  //     }
+  //   })()
+  //   return () => {
+  //     subIds.forEach(subId => {
+  //       connection.removeAccountChangeListener(subId);
+  //     });
+  //   }
+  // }, [])
 
   useEffect(() => {
     const subIds: number[] = [];

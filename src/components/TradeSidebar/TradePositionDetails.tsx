@@ -2,7 +2,7 @@ import { cloneElement } from "react";
 import { twMerge } from "tailwind-merge";
 
 import { TokenE, getTokenEIcon } from "@/utils/TokenUtils";
-import { Tab } from ".";
+import { isVariant, Side } from "@/types/index";
 
 function formatPrice(num: number) {
   const formatter = Intl.NumberFormat("en", {
@@ -28,7 +28,7 @@ interface Props {
   entryPrice: number;
   exitPrice: number;
   token: TokenE;
-  side: Tab;
+  Side: Side;
 }
 
 export function TradePositionDetails(props: Props) {
@@ -37,7 +37,7 @@ export function TradePositionDetails(props: Props) {
   return (
     <div className={props.className}>
       <header className="mb-4 flex items-center">
-        <div className="text-sm font-medium text-white">{props.side}</div>
+        <div className="text-sm font-medium text-white">{isVariant(props.Side, 'long') ? 'Long' : 'Short'}</div>
         {cloneElement(icon, {
           className: twMerge(icon.props.className, "h-4", "ml-1.5", "w-4"),
         })}

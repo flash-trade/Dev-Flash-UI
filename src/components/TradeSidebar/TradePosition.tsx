@@ -19,7 +19,7 @@ import { fetchTokenBalance } from "@/utils/retrieveData";
 import { usePositions } from "@/hooks/usePositions";
 import { getPerpetualProgramAndProvider, POOL_CONFIG, PRICE_DECIMALS, RATE_DECIMALS } from "@/utils/constants";
 import {  ViewHelper } from "@/viewHelpers/index";
-import { Side } from "@/types/index";
+import { isVariant, Side } from "@/types/index";
 import { useGlobalStore } from "@/stores/store";
 import { usePythPrices } from "@/hooks/usePythPrices";
 import { sleep } from "@/utils/TransactionHandlers";
@@ -99,7 +99,7 @@ export function TradePosition(props: Props) {
    
     // console.log("passing :",payAmount, positionAmount)
     //  const entryPrice = allPriceStats[positionToken]?.currentPrice * payAmount || 0;
-    const r = await View.getEntryPriceAndFee( new BN(payAmount * 10**(positionTokenCustody?.decimals!)), new BN(positionAmount * 10**(positionTokenCustody?.decimals!)) ,props.side as any , POOL_CONFIG.poolAddress, positionTokenCustody?.custodyAccount!)
+    const r = await View.getEntryPriceAndFee( new BN(payAmount * 10**(positionTokenCustody?.decimals!)), new BN(positionAmount * 10**(positionTokenCustody?.decimals!)) ,props.side , POOL_CONFIG.poolAddress, positionTokenCustody?.custodyAccount!)
     // console.log('getEntryPriceAndFee :>> ', r);
     // console.log("getEntryPriceAndFee, setEntryFee: ",r.price.toNumber(), r.fee.toNumber());
     const price = r.price.toNumber()/ 10**6; 
@@ -109,7 +109,7 @@ export function TradePosition(props: Props) {
      const oraclePrice = prices.get(positionToken)  || 0; // chnage to oracle
     const emaPrice = await View.getOraclePrice( POOL_CONFIG.poolAddress, true, positionTokenCustody?.custodyAccount!)
     // console.log("getOraclePrice, emaPrice: ",oraclePrice,emaPrice.toNumber()/10**6)
-    if(props.side == 1){ //long
+    if(isVariant(props.side, 'long')){ //long
       const min = Math.min(oraclePrice,emaPrice.toNumber()/10**6)
       setExitPrice(min)
     } else {
@@ -213,7 +213,8 @@ export function TradePosition(props: Props) {
           })}
         />
         <div className="mt-4 text-sm font-medium text-white">
-          You {props.side === Side.Long ? "Long" : "Short"}
+          You 
+          {isVariant(props.side, 'long') ? "Long" : "Short"}
         </div>
         <TokenSelector
           className="mt-2"
@@ -268,7 +269,7 @@ export function TradePosition(props: Props) {
           entryPrice={entryPrice}
           exitPrice={exitPrice}
           token={positionToken}
-          side={props.side as any}
+          Side={props.side}
         />
       </div>
     );

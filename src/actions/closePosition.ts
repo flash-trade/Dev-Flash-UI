@@ -16,7 +16,7 @@ import {
   PublicKey,
   Transaction,
 } from "@solana/web3.js";
-import { Side } from "../types";
+import { isVariant, Side } from "../types";
 
 export async function closePosition(
   wallet: Wallet,
@@ -31,13 +31,13 @@ export async function closePosition(
 ) {
 
   let { perpetual_program } = await getPerpetualProgramAndProvider(wallet);
-  console.log("side , isLong:", side , side == Side.Long);
+  console.log("side , isLong:", side , isVariant(side, 'long'));
 
   // TODO: need to take slippage as param , this is now for testing
   const adjustedPrice =
-     side == Side.Long
-      ? price.mul(new BN(105)).div(new BN(100))
-      : price.mul(new BN(95)).div(new BN(100))
+   isVariant(side, 'long')
+      ? price.mul(new BN(95)).div(new BN(100))
+      : price.mul(new BN(105)).div(new BN(100))
   console.log(
     "adjustedPrice, coingeckoPrice:",
     adjustedPrice.toString(),

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { getPerpetualProgramAndProvider, POOL_CONFIG } from "@/utils/constants";
 import { useAnchorWallet, useConnection, useWallet } from "@solana/wallet-adapter-react";
-import {  useGlobalStore } from "@/stores/store";
-import { shallow } from "zustand/shallow";
-import { Position } from "../types";
+// import {  useGlobalStore } from "@/stores/store";
+// import { shallow } from "zustand/shallow";
+import { isVariant, Position, Side } from "../types";
 import { ViewHelper } from "../viewHelpers";
 import { PositionAccount } from "@/lib/PositionAccount";
 
@@ -11,15 +11,17 @@ import { PositionAccount } from "@/lib/PositionAccount";
 //  find if any new postions and add to store
 //  should fetch every 10 secods , pnl, liquidationPrice 
 export function usePositions() {
-  const { positions, addPosition, removePosition, setPositions } = useGlobalStore(
-    (state) => ({
-      positions: state.positions,
-      addPosition: state.addPosition,
-      removePostion: state.removePosition,
-      setPositions: state.setPositions,
-    }),
-    shallow
-  );
+  
+      // for now NO store 
+  // const { positions, addPosition, removePosition, setPositions } = useGlobalStore(
+  //   (state) => ({
+  //     positions: state.positions,
+  //     addPosition: state.addPosition,
+  //     removePostion: state.removePosition,
+  //     setPositions: state.setPositions,
+  //   }),
+  //   shallow
+  // );
 
   const { publicKey } = useWallet();
   const wallet = useAnchorWallet();
@@ -53,15 +55,16 @@ export function usePositions() {
     let data : PositionAccount[] = [];
 
     for  (const accInfo of fetchedPositions) {
-      if(!positions.has(accInfo.publicKey.toBase58())){
-        addPosition(accInfo.publicKey.toBase58(), accInfo.account as unknown as Position)
-      }
-      console.log("accInfo.account:",accInfo.account)
+      // for now NO store 
+      // if(!positions.has(accInfo.publicKey.toBase58())){
+      //   addPosition(accInfo.publicKey.toBase58(), accInfo.account as unknown as Position)
+      // }
+      // console.log("fetchedPositions accInfo.account:",accInfo.account, accInfo.account.side,  isVariant(accInfo.account.side, 'long') , isVariant(accInfo.account.side, 'short'))
       let posAcc =  await PositionAccount.from(View,accInfo.publicKey, accInfo.account as unknown as Position);
       data.push(posAcc);
     }
 
-    console.log(">>>>> usePositions positionAccounts:",data, data.length)
+    // console.log(">>>>> usePositions positionAccounts:",data, data.length)
     setPositionAccounts(data);
   };
 
