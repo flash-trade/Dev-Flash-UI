@@ -17,13 +17,17 @@ export const USD_DECIMALS = 6; //
 export const BPS_DECIMALS = 4; // 
 
 
+export const RPC_URL: string = process.env.NEXT_PUBLIC_RPC_URL || 'https://api.devnet.solana.com';
 export const CLUSTER: Cluster = process.env.NEXT_CLUSTER as Cluster || 'devnet';
 export const DEFAULT_POOL: string = process.env.NEXT_DEFAULT_POOL || 'FlashPool2';
+
+console.log("RPC_URL:",RPC_URL);
+console.log("CLUSTER:",CLUSTER);
+console.log("DEFAULT_POOL:",DEFAULT_POOL);
 
 export const POOL_CONFIG = PoolConfig.fromIdsByName(DEFAULT_POOL, CLUSTER);
 
 export const PERPETUALS_PROGRAM_ID = new PublicKey(POOL_CONFIG.programId);
-
 export const SOL_MINT_ADDRESS =  POOL_CONFIG.tokens.find(i => i.symbol=='SOL')?.mintKey?.toBase58() ?? "NOT_FOUND_IN_CONFIG";
 export const USDC_MINT_ADDRESS = POOL_CONFIG.tokens.find(i => i.symbol=='USDC')?.mintKey?.toBase58() ?? "NOT_FOUND_IN_CONFIG";
 export const BTC_MINT_ADDRESS = POOL_CONFIG.tokens.find(i => i.symbol=='BTC')?.mintKey?.toBase58() ?? "NOT_FOUND_IN_CONFIG";

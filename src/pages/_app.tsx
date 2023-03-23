@@ -12,7 +12,6 @@ import {
   SlopeWalletAdapter,
   TorusWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
-import { clusterApiUrl } from "@solana/web3.js";
 import { AppProps } from "next/app";
 import { FC, useMemo } from "react";
 
@@ -23,6 +22,7 @@ require("@solana/wallet-adapter-react-ui/styles.css");
 
 import { Navbar } from "@/components/Navbar";
 import { useHydrateStore } from "@/hooks/useHydrateStore";
+import { CLUSTER, RPC_URL } from "@/utils/constants";
 
 const StoreUpdater = () => {
   useHydrateStore()
@@ -52,8 +52,8 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 
 const Context: FC<{ children: ReactNode }> = ({ children }) => {
   // Can be set to 'devnet', 'testnet', or 'mainnet-beta'
-  const network = WalletAdapterNetwork.Devnet;
-  const endpoint = useMemo(() => 'https://xenonso-develope-ee52.devnet.rpcpool.com/b8a804b2-c299-4823-a828-42f86031af1e', [network]);
+  // const network = WalletAdapterNetwork.Devnet;
+  const endpoint = useMemo(() => RPC_URL, [CLUSTER]);
   // const endpoint = useMemo(() => "http://localhost:8899");
 
   const wallets = useMemo(
@@ -63,7 +63,7 @@ const Context: FC<{ children: ReactNode }> = ({ children }) => {
       new TorusWalletAdapter(),
       new LedgerWalletAdapter(),
     ],
-    [network]
+    [CLUSTER]
   );
 
   return (

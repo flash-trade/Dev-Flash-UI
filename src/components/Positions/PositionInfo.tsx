@@ -29,12 +29,6 @@ interface Props {
 
 export function PositionInfo(props: Props) {
   const tokenIcon = getTokenEIcon(props.position.custodyConfig.symbol);
-
-  useEffect(() => {
-
-    console.log("PositionInfo props: ",props.position.side, Side.Long,  isVariant(props.position.side, 'long'))
-    
-  }, [props])
   
 
   return (

@@ -233,7 +233,10 @@ export class ViewHelper {
     // console.log("fee payer : ",DEFAULT_PERPS_USER.publicKey.toBase58())
     const transaction = await program.methods
       // @ts-ignore
-      .getLiquidationPrice({})
+      .getLiquidationPrice({
+        // addCollateral, // need to update new code 
+        // removeCollateral,
+      })
       .accounts({
         perpetuals: this.poolConfig.perpetuals,
         pool: poolKey,
